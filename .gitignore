@@ -129,5 +129,4 @@ dmypy.json
 .pyre/
 
 # results
-.jpg
-.png
+*.[jJ][pP][gG]
