@@ -1,23 +1,28 @@
 import numpy as np
+import matplotlib.patches as patches
+
 class Obstacle(object):
+	
 	def __init__(self, kind, parameters, velMean, velCovar):
 		#kind: string type. Either 'rect' or 'circle'
 		#parameters: for rect type: parameters= [x_min, y_min, width, height]
 		#for circle type: paramters = [x, y, radius]
 		#velMean = mean of velocity Gaussian
 		#velCovar = covariance of velocity Gaussian
+		if not ( ((kind=='rect')and(len(parameters)==4)) or \
+				 ((kind=='circle')and(len(parameters)==3)) ):
+			raise ValueError
 		self.kind = kind
 		self.params = parameters
 		self.velMean = velMean
 		self.velCovar = velCovar
 		if kind == 'rect':
-			self.position =np.array([parameters[0], parameters[1]])
+			self.position = np.array([parameters[0], parameters[1]])
 			self.width = parameters[2]
 			self.height = parameters[3]
 		if kind == 'circle':
 			self.position = np.array([parameters[0], parameters[1]])
 			self.radius = parameters[2]
-
 
 	def isCollisionFree(self, x):
 		#returns a boolean indicating whether obstacle is in collision 
@@ -63,7 +68,3 @@ class Obstacle(object):
 		randVel = np.random.multivariate_normal(self.velMean, self.velCovar)
 		self.position = self.position + randVel
 		return self.position
-
-
-
-
