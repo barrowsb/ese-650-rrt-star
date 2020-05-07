@@ -1,4 +1,3 @@
-# ese-650-rrt-star
-RRT* project for ESE-650 final project
-
-edit to show workflow
+# ESE 650 Final Project:
+# An Analysis of RRT\*, RRT\*FN, and RRT\*FND
+Brian Barrows, Karan Pandya, and Sottithat Tutch Winyarat
