@@ -48,6 +48,13 @@ class Obstacle(object):
 				return False
 		return True
 
+	def toPatch(self):
+		#returns patch object for plotting
+		if self.kind == 'rect':
+			return patches.Rectangle((self.position[0], self.position[1]), self.width, self.height)
+
+		return patches.Circle((self.position[0], self.position[1]), self.radius )
+
 	# def getCurPos(self):
 	# 	return self.position
 
