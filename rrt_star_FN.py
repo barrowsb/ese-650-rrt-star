@@ -34,7 +34,7 @@ for i in range(N):
 	#2. Sample
 	# qrand = utils.sampleUniform(xmin,ymin, xmax, ymax)
 	qrand = utils.sampleGaussian(goal, 20.0*np.eye(2))
-	if not goalFound:
+	if goalFound:
 		qrand = utils.sampleUniform(xmin,ymin, xmax, ymax)
 
 	#3. Steer from qnear toward qrand
