@@ -28,7 +28,7 @@ class Obstacle(object):
 
 	def rectCollisionFree(self, x):
 		#collision detection for rect type obstacle
-		o = [self.position, self.position+ [self.width, 0],self.position+ [0, self.height], self.position + [self.width, self.height] ]
+		o = [self.position, self.position+ [self.width, 0],self.position + [self.width, self.height], self.position+ [0, self.height] ]
 		for t in np.linspace(o[0], o[-1], 10):
 			if np.linalg.norm(t-x) <= 0.85: #using 0.85 instead of 0.8 for safety
 				return False
