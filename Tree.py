@@ -7,7 +7,7 @@ class Tree(object):
 	def __init__(self, start, goal, obstacles):
 		#obstacles: a set of obstacle objects
 		self.nodes = np.array([start])
-		self.parents = np.array([None]) #parentID of root node is None
+		self.parents = np.array([-1]) #parentID of root node is -1
 		self.costs = np.array([0]) #list of costs to get to each node from its parent
 		
 		self.obstacles = obstacles # a list of Obstacle Objects
@@ -38,7 +38,7 @@ class Tree(object):
 		path = np.array([self.nodes[nodeID]])
 		path_ID = np.array([nodeID])
 		parentID = self.parents[nodeID]
-		while not parentID is None:
+		while not parentID == -1:
 			# print("parent: {}".format(parentID))
 			path = np.append(path, [self.nodes[parentID]], axis=0)
 			path_ID = np.append(path_ID, [parentID])
@@ -69,11 +69,13 @@ class Tree(object):
 	######################################
 	###### RRT* and RRT*FD Methods #######
 	######################################
-	def costTo(self, nodeID):
+	def costTo(self, nodeID, returnPath=False):
 		path, path_IDs = self.retracePathFrom(nodeID)
 		cost = 0
 		for ID in path_IDs[1:]:
 			cost = cost + self.costs[ID]
+		if returnPath == True:
+			return cost, path, path_IDs
 		return cost
 	
 	def getNN(self, node, radius):
@@ -103,12 +105,12 @@ class Tree(object):
 		self.parents = np.delete(self.parents, xremoveID)
 		# if xremoveID in self.goalIDs:
 		# 	self.goalIDs = np.delete(self.goalIDs,np.argwhere(self.goalIDs == xremoveID))
-		#adjust parentIDs
-		parents = self.parents.copy()
-		parents[0] = -1 #replace None with -1
-		self.parents[np.where(parents > xremoveID)]= self.parents[np.where(parents > xremoveID)]-1
-		#adjust goalIDs		
-		self.goalIDs[np.where(self.goalIDs > xremoveID)]= self.goalIDs[np.where(self.goalIDs > xremoveID)]-1
+		# adjust parentIDs
+		# parents = self.parents.copy()
+		# parents[0] = -1 #replace None with -1
+		self.parents[np.where(self.parents > xremoveID)] = self.parents[np.where(self.parents > xremoveID)]-1
+		# adjust goalIDs		
+		self.goalIDs[np.where(self.goalIDs > xremoveID)] = self.goalIDs[np.where(self.goalIDs > xremoveID)]-1
 		# print("REMOVED CHILDLESS NODE: {}".format(self.nodes[xremoveID, :]))
 
 
