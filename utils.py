@@ -8,7 +8,7 @@ def sampleUniform(xmin, ymin, xmax, ymax):
 def sampleGaussian(mean, covar):
 	return np.random.multivariate_normal(mean, covar)
 
-def sampleNearPath(path, covar = 2.0*np.eye(2)):
+def sampleNearPath(path, covar = 1.0*np.eye(2)):
 	#draws from Gaussian centered at randomly interpolated wayPt on path
 	numWayPts = np.shape(path)[0]
 	randID = np.random.randint(0, numWayPts-2)
