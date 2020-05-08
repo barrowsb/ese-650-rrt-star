@@ -36,7 +36,7 @@ class Tree(object):
 		return nearest_node, nearest_nodeID
 
 	def retracePathFrom(self, nodeID):
-		#returns path node sequence and path nodeID sequence
+		#returns nodeID sequence from the root node to the given node
 		path_ID = np.array([nodeID])
 		parentID = int(self.nodes[nodeID, 3])
 		while parentID != -1:
@@ -143,8 +143,8 @@ class Tree(object):
 		return parent_index, min_cost
 
 
-	#Rewiring self after the new node has been added to self. 
-	#The new node's parent is xnew
+	# Rewiring the tree nodes within the hyperball after a new node has been added to the tree. 
+	# The new node becomes the parent of the rewired nodes
 	def rewire(self, new_nodeID,neighbour_indices,distances):
 		distance_to_neighbours = distances[neighbour_indices] #branch costs to neighbor
 		new_costs = distance_to_neighbours + self.nodes[new_nodeID,2]
@@ -220,6 +220,7 @@ class Tree(object):
 			costToGoal, goalID = self.minGoalID()
 			solpath_ID = self.retracePathFrom(goalID)
 			return self.nodes[solpath_ID, 0:2], solpath_ID
+
 		return None
 
 	
