@@ -32,16 +32,13 @@ class Tree(object):
 		return nearest_node, nearest_nodeID
 
 	def retracePathFrom(self, nodeID):
-		#returns path node sequence and path nodeID sequence
-		path = np.array([self.nodes[nodeID, 0:2]])
+		#returns path nodeID sequence
 		path_ID = np.array([nodeID])
-		parentID = self.nodes[nodeID, 3]
-		while not parentID is None:
-			path = np.append(path, [self.nodes[parentID, 0:2]], axis=0)
+		parentID = int(self.nodes[nodeID, 3])
+		while parentID != -1:
 			path_ID = np.append(path_ID, [parentID])
-			parentID = self.nodes[parentID,3]
-			
-		return np.flipud(path), np.flipud(path_ID)	
+			parentID = int(self.nodes[parentID,3])			
+		return np.flipud(path_ID)		
 
 	def collisionFree(self, node):
 		#node is a x-y coord of circular bot of radius 0.8
@@ -66,15 +63,6 @@ class Tree(object):
 	######################################
 	###### RRT* and RRT*FD Methods #######
 	######################################
-	def costTo(self, nodeID, returnPath=False):
-		path, path_IDs = self.retracePathFrom(nodeID)
-		cost = 0
-		for ID in path_IDs[1:]:
-			cost = cost + self.costs[ID]
-		if returnPath == True:
-			return cost, path, path_IDs
-		return cost
-	
 	def getNN(self, new_node, radius):
 		#returns nodeIDs of neighbors within hyperball 
 		temp = self.nodes[:,0:2] - new_node
