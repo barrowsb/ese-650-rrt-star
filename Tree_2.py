@@ -90,8 +90,8 @@ class Tree(object):
 		xremoveID = random.choice(childlessIDs)
 		#4. Remove
 		self.nodes = np.delete(self.nodes, xremoveID, axis = 0)
-		# if xremoveID in self.goalIDs:
-		# 	self.goalIDs = np.delete(self.goalIDs,np.argwhere(self.goalIDs == xremoveID))
+		if xremoveID in self.goalIDs:
+			self.goalIDs = np.delete(self.goalIDs,np.argwhere(self.goalIDs == xremoveID))
 		#adjust parentIDs
 		parents = self.nodes[:, 3]
 		self.nodes[np.where(parents > xremoveID), 3]= self.nodes[np.where(parents > xremoveID), 3]-1
