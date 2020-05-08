@@ -173,7 +173,7 @@ class Tree(object):
 	####################################
 	def initGrowth(self, exhaust = False, N = 10000, maxNumNodes = 6000, epsilon = 0.5, eta = 1.0, gamma = 20.0  ):
 		#exhaust: if true, finish all N iterations before returning solPath
-		#initial tree growth. Returns solution path
+		#initial tree growth. Returns solution path and its ID sequence
 		print("Begin initial growth...")
 		goalFound = False
 		for i in range(N):
@@ -211,15 +211,15 @@ class Tree(object):
 			if not exhaust:
 				if goalFound:
 					costToGoal, goalID = self.minGoalID()
-					path_ID = self.retracePathFrom(goalID)
-					return self.nodes[path_ID, 0:2]
+					solpath_ID = self.retracePathFrom(goalID)
+					return self.nodes[solpath_ID, 0:2], solpath_ID
 					# print("		cost to goal: {}".format(costToGoal))
 					# iterations.append(i)
 					# costs.append(costToGoal)
 		if goalFound:
 			costToGoal, goalID = self.minGoalID()
 			solpath_ID = self.retracePathFrom(goalID)
-			return self.nodes[solpath_ID, 0:2]
+			return self.nodes[solpath_ID, 0:2], solpath_ID
 		return None
 
 	
@@ -227,10 +227,24 @@ class Tree(object):
 		pass
 
 	def selectBranch(self, pcur):
-		pass
+		#1. remove all lineages prior to pcur
+		#2. Adjust nx4 matrix 
+		#3. Adjust goalIDs
+		#return the adjusted solpathID(shorter and ID-correct), passs solpathID to validPath()
 
 	def validPath(self, solPath):
-		pass
+		#1. Find in-collision nodes
+		mask = [not self.collisionFree(self.nodes[i, 0:2]) for i in solPathID]
+		maskShifted = np.append(np.array([0]), mask[:-1])
+		maskSum = mask + maskShifted
+		p_separateID = solPathID[np.where(maskSum == 1)[0][-1]]
+		deadNodesID = solPathID[mask]
+		
+		deadNodes =  self.nodes[deadNodesID, 0:2]
+		orphanRoot = self.nodes[p_separateID, 0:2] #p_separate
+		return deadNodes, orphanRoot
+
+		#3. Adjust node indices
 
 	def reconnect(self):
 		pass
