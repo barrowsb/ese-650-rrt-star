@@ -36,7 +36,7 @@ class Tree(object):
 		return nearest_node, nearest_nodeID
 
 	def retracePathFrom(self, nodeID):
-		#returns path node sequence and path nodeID sequence
+		#returns nodeID sequence from the root node to the given node
 		path_ID = np.array([nodeID])
 		parentID = int(self.nodes[nodeID, 3])
 		while parentID != -1:
@@ -220,6 +220,7 @@ class Tree(object):
 			costToGoal, goalID = self.minGoalID()
 			solpath_ID = self.retracePathFrom(goalID)
 			return self.nodes[solpath_ID, 0:2]
+
 		return None
 
 	
