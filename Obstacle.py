@@ -3,7 +3,7 @@ import matplotlib.patches as patches
 
 class Obstacle(object):
 	
-	def __init__(self, kind, parameters, velMean, velCovar):
+	def __init__(self, kind, parameters, velMean, velCovar, borders):
 		#kind: string type. Either 'rect' or 'circle'
 		#parameters: for rect type: parameters= [x_min, y_min, width, height]
 		#for circle type: paramters = [x, y, radius]
@@ -16,6 +16,7 @@ class Obstacle(object):
 		self.params = parameters
 		self.velMean = velMean
 		self.velCovar = velCovar
+		self.speed = np.linalg.norm(velMean)
 		if kind == 'rect':
 			self.position = np.array([parameters[0], parameters[1]])
 			self.width = parameters[2]
@@ -23,6 +24,11 @@ class Obstacle(object):
 		if kind == 'circle':
 			self.position = np.array([parameters[0], parameters[1]])
 			self.radius = parameters[2]
+		self.history = [self.position]
+		self.xmin = borders[0]
+		self.ymin = borders[1]
+		self.xmax = borders[2]
+		self.ymax = borders[3]
 
 	def isCollisionFree(self, x):
 		#returns a boolean indicating whether obstacle is in collision 
@@ -60,11 +66,37 @@ class Obstacle(object):
 
 		return patches.Circle((self.position[0], self.position[1]), self.radius )
 
-	# def getCurPos(self):
-	# 	return self.position
-
-	def updatePosition(self):
-		#updates and returns next timestep position
-		randVel = np.random.multivariate_normal(self.velMean, self.velCovar)
-		self.position = self.position + randVel
-		return self.position
+	def moveObstacle(self,dt=1):
+		#updates dynamics and returns next timestep position
+		# sample random velocity
+		vel = np.random.multivariate_normal(self.velMean, self.velCovar)
+		vel = self.speed*(vel/np.linalg.norm(vel))
+		# check for rebound and update obstacle position
+		vel,new = self.checkRebound(vel,dt)
+		# update and return output
+		self.velMean = vel
+		self.position = new
+		self.history.append(new)
+		return new
+	
+	def checkRebound(self,vel,dt):
+		rebound = False
+		new = self.position + vel*dt
+		if self.kind == 'rect':
+			pass
+		else: # self.kind=='circle'
+			if new[0] > self.xmax - self.radius:
+				vel *= np.array([-1,1])
+				rebound = True
+			elif new[0] < self.xmin + self.radius:
+				vel *= np.array([-1,1])
+				rebound = True
+			if new[1] > self.ymax - self.radius:
+				vel *= np.array([1,-1])
+				rebound = True
+			elif new[1] < self.ymin + self.radius:
+				vel *= np.array([1,-1])
+				rebound = True
+		if rebound:
+			new = self.position + vel*dt
+		return vel,new
