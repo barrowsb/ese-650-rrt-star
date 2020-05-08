@@ -13,6 +13,8 @@ class Tree(object):
 		self.goalIDs = np.array([]).astype(int) # list of near-goal nodeIDs
 		self.update_q = [] # for cost propagation
 		self.resolution = 0.0001 # Resolution for obstacle check along an edge
+		self.separatePath = np.array([]) # orphaned tree
+		self.pcurID = 0 #set ID of current node to rootID
 	
 	def addEdge(self, parentID, child, cost):
 		if parentID < 0 or parentID > np.shape(self.nodes)[0]-1:
@@ -64,7 +66,8 @@ class Tree(object):
 	
 	def updateObtacles(self):
 		pass	
-
+####################################################################################################################################
+	
 	######################################
 	###### RRT* and RRT*FD Methods #######
 	######################################
@@ -163,7 +166,27 @@ class Tree(object):
 					next_indices = list(next_indices)
 					self.update_q.extend(next_indices)
 
+####################################################################################################################################
+	####################################
+	######### RRT* FND Methods #########
+	####################################
+	def initGrowth(self):
+		pass
 
+	def detectCollision(self, solPath, pcur):
+		pass
+
+	def selectBranch(self, pcur):
+		pass
+
+	def validPath(self, solPath):
+		pass
+
+	def reconnect(self):
+		pass
+
+	def regrow(self):
+		pass
 
 
 
