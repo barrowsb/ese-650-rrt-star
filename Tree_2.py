@@ -32,16 +32,13 @@ class Tree(object):
 		return nearest_node, nearest_nodeID
 
 	def retracePathFrom(self, nodeID):
-		#returns path node sequence and path nodeID sequence
-		path = np.array([self.nodes[nodeID, 0:2]])
+		#returns path nodeID sequence
 		path_ID = np.array([nodeID])
-		parentID = self.nodes[nodeID, 3]
-		while not parentID is None:
-			path = np.append(path, [self.nodes[parentID, 0:2]], axis=0)
+		parentID = int(self.nodes[nodeID, 3])
+		while parentID != -1:
 			path_ID = np.append(path_ID, [parentID])
-			parentID = self.nodes[parentID,3]
-			
-		return np.flipud(path), np.flipud(path_ID)	
+			parentID = int(self.nodes[parentID,3])			
+		return np.flipud(path_ID)		
 
 	def collisionFree(self, node):
 		#node is a x-y coord of circular bot of radius 0.8
@@ -66,15 +63,6 @@ class Tree(object):
 	######################################
 	###### RRT* and RRT*FD Methods #######
 	######################################
-	def costTo(self, nodeID, returnPath=False):
-		path, path_IDs = self.retracePathFrom(nodeID)
-		cost = 0
-		for ID in path_IDs[1:]:
-			cost = cost + self.costs[ID]
-		if returnPath == True:
-			return cost, path, path_IDs
-		return cost
-	
 	def getNN(self, new_node, radius):
 		#returns nodeIDs of neighbors within hyperball 
 		temp = self.nodes[:,0:2] - new_node
@@ -84,63 +72,53 @@ class Tree(object):
 		return distances,neighbour_indices
 
 	
-	# def forcedRemove(self, xnewID, goal, goalFound):
-	# 	#1. find childless nodes 
-	# 	parentIDs = set(self.parents)
-	# 	nodeIDs = set(np.arange(np.shape(self.nodes)[0]))
-	# 	childlessIDs = nodeIDs - parentIDs
+	def forcedRemove(self, xnewID, goal, goalFound):
+		#1. find childless nodes 
+		parentIDs = self.nodes[:, 3].copy().tolist()
+		parentIDs = set(parentIDs)
+		nodeIDs = set(np.arange(np.shape(self.nodes)[0]))
+		childlessIDs = nodeIDs - parentIDs
 
-	# 	#2. Get the tail node of best path towards goal
-	# 	bestLastNodeID, minCost = self.bestPathLastNode(goal, goalFound)
-	# 	#3. Exclude xnew and bestLastNode from childless list. Then draw
-	# 	childlessIDs = list(childlessIDs - {xnewID}- set(self.goalIDs))
-
-	# 	if len(childlessIDs) < 1:
-	# 		return
+		#2. Get the tail node of best path towards goal
+		bestLastNodeID = self.bestPathLastNode(goal, goalFound)
+		#3. Exclude xnew and bestLastNode from childless list. Then draw
+		childlessIDs = list(childlessIDs - {bestLastNodeID, xnewID})
+		if len(childlessIDs) < 1:
+			return
 		
-	# 	xremoveID = random.choice(childlessIDs)
-	# 	#4. Remove
-	# 	self.nodes = np.delete(self.nodes, xremoveID, axis = 0)
-	# 	self.costs = np.delete(self.costs, xremoveID)
-	# 	self.parents = np.delete(self.parents, xremoveID)
-	# 	# if xremoveID in self.goalIDs:
-	# 	# 	self.goalIDs = np.delete(self.goalIDs,np.argwhere(self.goalIDs == xremoveID))
-	# 	#adjust parentIDs
-	# 	parents = self.parents.copy()
-	# 	parents[0] = -1 #replace None with -1
-	# 	self.parents[np.where(parents > xremoveID)]= self.parents[np.where(parents > xremoveID)]-1
-	# 	#adjust goalIDs		
-	# 	self.goalIDs[np.where(self.goalIDs > xremoveID)]= self.goalIDs[np.where(self.goalIDs > xremoveID)]-1
-	# 	# print("REMOVED CHILDLESS NODE: {}".format(self.nodes[xremoveID, :]))
+		xremoveID = random.choice(childlessIDs)
+		#4. Remove
+		self.nodes = np.delete(self.nodes, xremoveID, axis = 0)
+		# if xremoveID in self.goalIDs:
+		# 	self.goalIDs = np.delete(self.goalIDs,np.argwhere(self.goalIDs == xremoveID))
+		#adjust parentIDs
+		parents = self.nodes[:, 3]
+		self.nodes[np.where(parents > xremoveID), 3]= self.nodes[np.where(parents > xremoveID), 3]-1
+		#adjust goalIDs		
+		self.goalIDs[np.where(self.goalIDs > xremoveID)]= self.goalIDs[np.where(self.goalIDs > xremoveID)]-1
+		# print("REMOVED CHILDLESS NODE: {}".format(self.nodes[xremoveID, :]))
 
 
+	#returns nodeID that we want to exclude in forcedRemove()
+	def bestPathLastNode(self, goal, goalFound):
+		# if goal is found, get best path to goal
+		if goalFound:
+			#returns best near goal nodeID and its cost
+			minCostToGoal, goalID = self.minGoalID()
+			return goalID
+		#else get best path to node closest to goal
+		else:
+			nearestToGoal, ntgID = self.getNearest(goal)
+			cost = self.costTo(ntgID)
+			return ntgID
 
-	# def bestPathLastNode(self, goal, goalFound):
-	# 	# if goal is found, get best path to goal
-	# 	if goalFound:
-	# 		#returns best near goal nodeID and its cost
-	# 		minID = self.goalIDs[0]
-	# 		minCost = self.costTo(minID)
-	# 		for i in self.goalIDs:
-	# 			cost = self.costTo(i)
-	# 			if cost < minCost:
-	# 				minCost = cost
-	# 				minID = i
-			
-	# 		return i, minCost
-	# 	#else get best path to node closest to goal
-	# 	else:
-	# 		ntgID, nearestToGoal = self.getNearest(goal)
-	# 		cost = self.costTo(ntgID)
-	# 		return ntgID, cost
-
+	#returns ID of best node near goal
 	def minGoalID(self):
 		costsToGoal = self.nodes[self.goalIDs, 2]
 		minCostID = np.argmin(costsToGoal)
 		return costsToGoal[minCostID], self.goalIDs[minCostID]
 
 	def chooseParent(self, new_node,neighbour_indices,distances):
-		#choosing Best Parent
 		distance_to_neighbours = distances[neighbour_indices]
 		cost_of_neighbours = self.nodes[neighbour_indices,2]
 		costs = distance_to_neighbours + cost_of_neighbours
