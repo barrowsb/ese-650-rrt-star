@@ -3,7 +3,7 @@ import matplotlib.patches as patches
 
 class Obstacle(object):
 	
-	def __init__(self, kind, parameters, velMean, velCovar, borders):
+	def __init__(self, kind, parameters, velMean, velCovar, borders=[-15,-15,15,15]):
 		#kind: string type. Either 'rect' or 'circle'
 		#parameters: for rect type: parameters= [x_min, y_min, width, height]
 		#for circle type: paramters = [x, y, radius]
