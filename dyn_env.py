@@ -1,7 +1,6 @@
 import numpy as np
 from Obstacle import Obstacle
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 
 # Initialize
 start = [0,0]
@@ -9,13 +8,13 @@ goal = [10,10]
 xmin, ymin, xmax, ymax = -15,-15,15,15 #grid world borders
 borders = [xmin,ymin,xmax,ymax]
 obstacles = []
-#obstacles.append(Obstacle('rect',[-5, -5, 3, 4], [0,-1], np.eye(2)*0.0,borders))
-obstacles.append(Obstacle('circle',[2, 6, 3], [1,-4], np.eye(2)*0.0,borders))
+obstacles.append(Obstacle('rect',[0, 0, 4, 4 ], [1,1], np.eye(2)*0,borders))
+obstacles.append(Obstacle('circle',[2, 6, 3], [0,.5], np.eye(2)*0,borders))
 epsilon = 1.0 #near goal tolerance
 
 # Iterate
-N = 50 #number of iterations
-for i in range(1,N):
+N = 20 #number of iterations
+for i in range(0,N):
 	
 	# random motion
 	for obs in obstacles:

@@ -70,7 +70,9 @@ class Obstacle(object):
 		#updates dynamics and returns next timestep position
 		# sample random velocity
 		vel = np.random.multivariate_normal(self.velMean, self.velCovar)
-		vel = self.speed*(vel/np.linalg.norm(vel))
+		norm = np.linalg.norm(vel)
+		if not norm==0:
+			vel = self.speed*(vel/norm)
 		# check for rebound and update obstacle position
 		vel,new = self.checkRebound(vel,dt)
 		# update and return output
@@ -83,7 +85,18 @@ class Obstacle(object):
 		rebound = False
 		new = self.position + vel*dt
 		if self.kind == 'rect':
-			pass
+			if new[0] + self.width > self.xmax:
+				vel *= np.array([-1,1])
+				rebound = True
+			elif new[0] < self.xmin:
+				vel *= np.array([-1,1])
+				rebound = True
+			if new[1] + self.height > self.ymax:
+				vel *= np.array([1,-1])
+				rebound = True
+			elif new[1] < self.ymin:
+				vel *= np.array([1,-1])
+				rebound = True
 		else: # self.kind=='circle'
 			if new[0] > self.xmax - self.radius:
 				vel *= np.array([-1,1])
