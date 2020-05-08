@@ -228,6 +228,12 @@ class Tree(object):
 	def detectCollision(self, solPath, pcur):
 		pass
 
+	def trimLineage(self,start,end,tree=None):
+		if tree==None:
+			tree = self.nodes
+		
+		# return trimmed
+
 	def selectBranch(self, pcur):
 		#1. remove all lineages prior to pcur
 		#2. Adjust nx4 matrix 
