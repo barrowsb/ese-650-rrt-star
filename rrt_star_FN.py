@@ -20,6 +20,7 @@ N = 2000 #number of iterations
 epsilon = 0.5 #near goal tolerance
 maxNumNodes = 1000 #upper limit on tree size 
 eta = 1.0 #max branch length
+gamma = 20.0 #param to set for radius of hyperball
 goalFound = False
 ##########################################
 #for plotting
@@ -44,7 +45,6 @@ for i in range(N):
  
 	if tree.isValidBranch(qnear, qnew, np.linalg.norm(qnear-qnew)):
 		#4. Find nearest neighbors within hyperball
-		gamma = 20.0 #param to set 
 		n = np.shape(tree.nodes)[0] #number of nodes in tree
 		radius = min(eta, gamma*np.sqrt(np.log(n)/n))
 		distances, NNids = tree.getNN(qnew, radius) 
