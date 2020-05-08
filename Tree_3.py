@@ -143,7 +143,7 @@ class Tree(object):
 		return parent_index, min_cost
 
 
-	#Rewiring self after the new node has been added to self. 
+	#Rewiring the tree nodes within the hyperball after a new node has been added to the tree. 
 	#The new node's parent is xnew
 	def rewire(self, new_nodeID,neighbour_indices,distances):
 		distance_to_neighbours = distances[neighbour_indices] #branch costs to neighbor
