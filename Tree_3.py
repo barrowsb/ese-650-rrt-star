@@ -1,6 +1,7 @@
 import numpy as np
 from Obstacle import Obstacle
 import random
+import utils
 
 #RRT*FN
 class Tree(object):
@@ -13,7 +14,7 @@ class Tree(object):
 		self.goalIDs = np.array([]).astype(int) # list of near-goal nodeIDs
 		self.update_q = [] # for cost propagation
 		self.resolution = 0.0001 # Resolution for obstacle check along an edge
-		self.separatePath = np.array([]) # orphaned tree
+		self.separatePath = np.array([]) # orphaned self
 		self.pcurID = 0 #set ID of current node to rootID
 	
 	def addEdge(self, parentID, child, cost):
@@ -25,7 +26,7 @@ class Tree(object):
 		return len(self.nodes)-1 #return child node's ID
 
 	def getNearest(self, sample):
-		# Returns nearest neighbour to the sample from the nodes of the tree
+		# Returns nearest neighbour to the sample from the nodes of the self
 		temp = self.nodes[:,0:2] - sample
 		# print(temp.dtype)
 		# print(self.nodes)
@@ -142,7 +143,7 @@ class Tree(object):
 		return parent_index, min_cost
 
 
-	#Rewiring tree after the new node has been added to tree. 
+	#Rewiring self after the new node has been added to self. 
 	#The new node's parent is xnew
 	def rewire(self, new_nodeID,neighbour_indices,distances):
 		distance_to_neighbours = distances[neighbour_indices] #branch costs to neighbor
@@ -170,9 +171,58 @@ class Tree(object):
 	####################################
 	######### RRT* FND Methods #########
 	####################################
-	def initGrowth(self):
-		pass
+	def initGrowth(self, exhaust = False, N = 10000, maxNumNodes = 6000, epsilon = 0.5, eta = 1.0, gamma = 20.0  ):
+		#exhaust: if true, finish all N iterations before returning solPath
+		#initial tree growth. Returns solution path
+		print("Begin initial growth...")
+		goalFound = False
+		for i in range(N):
+			# print("iter {} || number of nodes: {}".format(i, self.nodes.shape[0]))
+			#2. Sample
+			qrand = utils.sampleUniform(self.xmin, self.ymin, self.xmax, self.ymax)
+			#3. Find nearest node to qrand
+			qnear, qnearID = self.getNearest(qrand)
+			qnew = utils.steer(eta,qnear, qrand)
+		 
+			if self.isValidBranch(qnear, qnew, np.linalg.norm(qnear-qnew)):
+				#4. Find nearest neighbors within hyperball
+				n = np.shape(self.nodes)[0] #number of nodes in self
+				radius = min(eta, gamma*np.sqrt(np.log(n)/n))
+				distances, NNids = self.getNN(qnew, radius) 
+				#distances are branch costs from every node to qnew
+				
+				#5. Choose qnew's best parent and insert qnew
+				naysID = np.append(np.array([qnearID]),NNids)
+				qparentID, qnewCost = self.chooseParent(qnew, naysID, distances)	
+				qnewID = self.addEdge(int(qparentID), qnew, qnewCost)	
+				
+				#6. If qnew is near goal, store its id
+				if np.linalg.norm(qnew - self.goal) < epsilon:
+					goalFound = True
+					#6.1 Append qnewID(goalID) to self.goalIDs list		
+					self.addGoalID(int(qnewID))
+				#7. Rewire within the hyperball vicinity
+				self.rewire(qnewID,naysID,distances)
 
+				#8.Trim tree
+				if np.shape(self.nodes)[0] > maxNumNodes:
+					self.forcedRemove(qnewID, self.goal, goalFound)
+
+			if not exhaust:
+				if goalFound:
+					costToGoal, goalID = self.minGoalID()
+					path_ID = self.retracePathFrom(goalID)
+					return self.nodes[path_ID, 0:2]
+					# print("		cost to goal: {}".format(costToGoal))
+					# iterations.append(i)
+					# costs.append(costToGoal)
+		if goalFound:
+			costToGoal, goalID = self.minGoalID()
+			solpath_ID = self.retracePathFrom(goalID)
+			return self.nodes[solpath_ID, 0:2]
+		return None
+
+	
 	def detectCollision(self, solPath, pcur):
 		pass
 
