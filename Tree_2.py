@@ -32,13 +32,14 @@ class Tree(object):
 		return nearest_node, nearest_nodeID
 
 	def retracePathFrom(self, nodeID):
-		#returns path nodeID sequence
+		#returns path node sequence and path nodeID sequence
 		path_ID = np.array([nodeID])
 		parentID = int(self.nodes[nodeID, 3])
 		while parentID != -1:
 			path_ID = np.append(path_ID, [parentID])
 			parentID = int(self.nodes[parentID,3])			
-		return np.flipud(path_ID)		
+		return np.flipud(path_ID)
+			
 
 	def collisionFree(self, node):
 		#node is a x-y coord of circular bot of radius 0.8
@@ -47,7 +48,7 @@ class Tree(object):
 				return False
 		return True
 
-	def isValidBranch(self, x1, x2):
+	def isValidBranch(self, x1, x2, branchLength):
 		#returns a boolean whether or not a branch is feasible
 		for x in np.linspace(x1, x2, 20): 
 			if not self.collisionFree(x): 
@@ -99,7 +100,6 @@ class Tree(object):
 		# print("REMOVED CHILDLESS NODE: {}".format(self.nodes[xremoveID, :]))
 
 
-	#returns nodeID that we want to exclude in forcedRemove()
 	def bestPathLastNode(self, goal, goalFound):
 		# if goal is found, get best path to goal
 		if goalFound:
@@ -109,23 +109,28 @@ class Tree(object):
 		#else get best path to node closest to goal
 		else:
 			nearestToGoal, ntgID = self.getNearest(goal)
-			cost = self.costTo(ntgID)
 			return ntgID
 
-	#returns ID of best node near goal
 	def minGoalID(self):
 		costsToGoal = self.nodes[self.goalIDs, 2]
 		minCostID = np.argmin(costsToGoal)
 		return costsToGoal[minCostID], self.goalIDs[minCostID]
 
 	def chooseParent(self, new_node,neighbour_indices,distances):
-		distance_to_neighbours = distances[neighbour_indices]
-		cost_of_neighbours = self.nodes[neighbour_indices,2]
-		costs = distance_to_neighbours + cost_of_neighbours
-		min_cost_index = np.argmin(costs)
-		min_cost = costs[min_cost_index]
-		parent_index = neighbour_indices[min_cost_index]
-		distance_to_parent = distances[parent_index]
+		#choosing Best Parent
+		nayID = neighbour_indices[0]
+		parent_index = nayID
+		branchCost = distances[nayID]
+		costToNay = self.nodes[nayID,2]	
+		min_cost = branchCost + costToNay
+
+		for nayID in neighbour_indices:
+			branchCost = distances[nayID]
+			costToNay = self.nodes[nayID,2]	
+			cost = branchCost+ costToNay
+			if cost < min_cost and self.isValidBranch(self.nodes[nayID, 0:2], new_node, branchCost):
+				min_cost = cost
+				parent_index = nayID
 
 		return parent_index, min_cost
 
@@ -143,7 +148,7 @@ class Tree(object):
 				children_indices = np.argwhere(self.nodes[:,3] == neighbour_indices[i]) 
 				children_indices = list(children_indices)
 				self.update_q.extend(children_indices)
-				print("REWIRING....")
+				# print("REWIRING....")
 				#COST PROPAGATION ####
 				while len(self.update_q) != 0:
 					child_index = int(self.update_q.pop(0))
@@ -154,7 +159,6 @@ class Tree(object):
 					next_indices = list(next_indices)
 					self.update_q.extend(next_indices)
 
-		pass
 
 
 
