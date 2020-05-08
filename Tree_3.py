@@ -14,8 +14,9 @@ class Tree(object):
 		self.goalIDs = np.array([]).astype(int) # list of near-goal nodeIDs
 		self.update_q = [] # for cost propagation
 		self.resolution = 0.0001 # Resolution for obstacle check along an edge
+		self.orphanedTree = np.array([0,0,0,0]).reshape(1,4)
 		self.separatePath = np.array([]) # orphaned self
-		self.pcurID = 0 #set ID of current node to rootID
+		self.pcurID = 0 # ID of current node (initialized to rootID)
 	
 	def addEdge(self, parentID, child, cost):
 		if parentID < 0 or parentID > np.shape(self.nodes)[0]-1:
