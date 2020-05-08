@@ -6,11 +6,11 @@ class Obstacle(object):
 	def __init__(self, kind, parameters, velMean, velCovar, borders=[-15,-15,15,15]):
 		#kind: string type. Either 'rect' or 'circle'
 		#parameters: for rect type: parameters= [x_min, y_min, width, height]
-		#for circle type: paramters = [x, y, radius]
+		#for circle type: parameters = [x_centre, y_centre, radius]
 		#velMean = mean of velocity Gaussian
 		#velCovar = covariance of velocity Gaussian
-		if not ( ((kind=='rect')and(len(parameters)==4)) or \
-				 ((kind=='circle')and(len(parameters)==3)) ):
+		if not ( ((kind=='rect') and (len(parameters)==4)) or \
+				 ((kind=='circle') and (len(parameters)==3)) ):
 			raise ValueError
 		self.kind = kind
 		self.params = parameters
@@ -29,9 +29,13 @@ class Obstacle(object):
 		self.ymin = borders[1]
 		self.xmax = borders[2]
 		self.ymax = borders[3]
+		self.robot_radius = 0.5
 
 	def isCollisionFree(self, x):
-		#returns a boolean indicating whether obstacle is in collision 
+		#returns a boolean indicating whether obstacle is in collision
+		if len(x.shape) == 1:
+			x = x.reshape(1,2)
+
 		if self.kind == 'rect':
 			return self.rectCollisionFree(x)
 		else:
@@ -39,25 +43,41 @@ class Obstacle(object):
 
 	def rectCollisionFree(self, x):
 		#collision detection for rect type obstacle
-		o = [self.position, self.position+ [self.width, 0],self.position + [self.width, self.height], self.position+ [0, self.height] ]
-		for t in np.linspace(o[0], o[-1], 10):
-			if np.linalg.norm(t-x) <= 0.85: #using 0.85 instead of 0.8 for safety
-				return False
-		#check the remaining 3 edges
-		for i in range(3):
-			for t in np.linspace(o[i], o[i+1], 10):
-				if np.linalg.norm(t-x) <= 0.85:
-					return False
-		return True
+		# o = [self.position, self.position+ [self.width, 0],self.position + [self.width, self.height], self.position+ [0, self.height] ]
+		# for t in np.linspace(o[0], o[-1], 10):
+		# 	if np.linalg.norm(t-x) <= 0.85: #using 0.85 instead of 0.8 for safety
+		# 		return False
+		# #check the remaining 3 edges
+		# for i in range(3):
+		# 	for t in np.linspace(o[i], o[i+1], 10):
+		# 		if np.linalg.norm(t-x) <= 0.85:
+		# 			return False
+
+		x_check = np.logical_and(x[:,0] >= self.position[0] - self.robot_radius,x[:,0] <= self.position[0] + self.width + self.robot_radius)
+		y_check = np.logical_and(x[:,1] >= self.position[1] - self.robot_radius,x[:,1] <= self.position[1] + self.height + self.robot_radius)
+		check = np.logical_and(x_check,y_check)
+
+		# obs_check is true if there is a collision
+		obs_check = check.any()
+
+		return np.logical_not(obs_check)
 
 	def circCollisionFree(self, x):
 		#collision detection for circle type obstacle 
-		for i in np.arange(0,360, 5):
-			i = np.radians(i)
-			perim = self.position + self.radius*np.array([np.cos(i), np.sin(i)])
-			if np.linalg.norm(perim-x) <= 0.85:
-				return False
-		return True
+		# for i in np.arange(0,360, 5):
+		# 	i = np.radians(i)
+		# 	perim = self.position + self.radius*np.array([np.cos(i), np.sin(i)])
+		# 	if np.linalg.norm(perim-x) <= 0.85:
+		# 		return False
+
+		temp = x - self.position
+		dist = np.linalg.norm(temp,axis = 1)
+		check = dist <= self.radius + self.robot_radius
+
+		# obs_check is true if there is a collision
+		obs_check = check.any()
+
+		return np.logical_not(obs_check)
 
 	def toPatch(self):
 		#returns patch object for plotting
