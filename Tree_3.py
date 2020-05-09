@@ -363,14 +363,14 @@ class Tree(object):
 
 		return self.separatePathID, self.orphanedTree #, deadNodes
 
-	def adoptTree(self, parentNodeID, orphanTree):
-		#args: parentNodeID== id of connection node, orphanTree == mx4 mat
+	def adoptTree(self, parentNodeID, orphanedTree):
+		#args: parentNodeID== id of connection node, orphanedTree == mx4 mat
 		#1.Adjust orphan ParentIDs and set parent of orphanroot to parentNodeID
-		orphanRootNewID = np.where(orphanTree[:, 3] == -1)[0][0] + np.shape(self.nodes)[0]
-		orphanTree[np.where(orphanTree[:, 3] != -1),3] = orphanTree[np.where(orphanTree[:, 3] != -1),3] + np.shape(self.nodes)[0]
-		orphanTree[np.where(orphanTree[:, 3] == -1), 3] = parentNodeID #assign parent 
-		#2. concat orphanTree matrix to mainTree matrix and update orphanroot's cost
-		fullTree = np.concatenate((self.nodes,orphanTree), axis = 0)
+		orphanRootNewID = np.where(orphanedTree[:, 3] == -1)[0][0] + np.shape(self.nodes)[0]
+		orphanedTree[np.where(orphanedTree[:, 3] != -1),3] = orphanedTree[np.where(orphanedTree[:, 3] != -1),3] + np.shape(self.nodes)[0]
+		orphanedTree[np.where(orphanedTree[:, 3] == -1), 3] = parentNodeID #assign parent 
+		#2. concat orphanedTree matrix to mainTree matrix and update orphanroot's cost
+		fullTree = np.concatenate((self.nodes,orphanedTree), axis = 0)
 		fullTree[orphanRootNewID, 2] = fullTree[parentNodeID, 2] + np.linalg.norm(fullTree[parentNodeID, 0:2]- fullTree[orphanRootNewID, 0:2])
 		#3. propagate cost from main tree
 		q = [] #queue
