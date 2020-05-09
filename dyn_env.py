@@ -8,12 +8,15 @@ goal = [10,10]
 xmin, ymin, xmax, ymax = -15,-15,15,15 #grid world borders
 borders = [xmin,ymin,xmax,ymax]
 obstacles = []
-obstacles.append(Obstacle('rect',[0, 0, 4, 4 ], [1,1], np.eye(2)*0,borders))
-obstacles.append(Obstacle('circle',[2, 6, 3], [0,.5], np.eye(2)*0,borders))
+obstacles.append(Obstacle('rect',[0, 0, 4, 4 ], [1,1]))
+obstacles.append(Obstacle('rect',[-10, -12, 9, 1 ], [-1,-1]))
+obstacles.append(Obstacle('circle',[-9, 11, 3], [2,0]))
+obstacles.append(Obstacle('circle',[6.5, -7, 7], [0,.5]))
+obstacles.append(Obstacle('circle',[4, 6, 1], [1,-.5]))
 epsilon = 1.0 #near goal tolerance
 
 # Iterate
-N = 20 #number of iterations
+N = 50 #number of iterations
 for i in range(0,N):
 	
 	# random motion
