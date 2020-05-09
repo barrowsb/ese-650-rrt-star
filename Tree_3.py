@@ -3,9 +3,9 @@ from Obstacle import Obstacle
 import random
 import utils
 
-#RRT*FN
+#RRT*FND
 class Tree(object):
-	def __init__(self, start, goal, obstacles):
+	def __init__(self, start, goal, obstacles, xmin,ymin,xmax, ymax):
 		self.nodes = np.array([0,0,0,-1]).reshape(1,4)
 		#4th column of self.nodes == parentID of root node is None
 		#3rd column of self.nodes == costs to get to each node from root
@@ -17,6 +17,8 @@ class Tree(object):
 		self.orphanedTree = np.array([0,0,0,0]).reshape(1,4)
 		self.separatePath = np.array([]) # orphaned self
 		self.pcurID = 0 # ID of current node (initialized to rootID)
+		self.xmin, self.ymin, self.xmax, self.ymax = xmin, ymin, xmax, ymax
+		self.goal = goal
 	
 	def addEdge(self, parentID, child, cost):
 		if parentID < 0 or parentID > np.shape(self.nodes)[0]-1:
