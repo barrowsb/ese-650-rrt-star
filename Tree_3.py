@@ -239,13 +239,16 @@ class Tree(object):
 		mask = [not self.collisionFree(self.nodes[i, 0:2]) for i in solPathID]
 		maskShifted = np.append(np.array([0]), mask[:-1])
 		maskSum = mask + maskShifted
+		#Kill all nodes between in-collision nodes as well
+		leftSentinel = np.where(mask)[0][0]
+		rightSentinel =  np.where(mask)[0][-1]+1
+		mask[leftSentinel: rightSentinel ] = [True for i in range(rightSentinel -leftSentinel)]
 		p_separateID = solPathID[np.where(maskSum == 1)[0][-1]]
 		deadNodesID = solPathID[mask]
 		
 		deadNodes =  self.nodes[deadNodesID, 0:2]
 		orphanRoot = self.nodes[p_separateID, 0:2] #p_separate
 		return deadNodes, orphanRoot
-
 		#3. Adjust node indices
 
 	def reconnect(self):
