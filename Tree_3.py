@@ -275,7 +275,8 @@ class Tree(object):
 		returngoal = False
 		if not goalIDs == None:
 			returngoal = True
-			rem_goalIDs = []
+			rem_goalIDs = [int(ID)-strippedToNodeID[int(ID)] for ID in goalIDs]
+			rem_goalIDs = np.array(rem_goalIDs)[np.greater_equal(rem_goalIDs,0,dtype=int)].tolist()
 		# Intelligent return
 		if returnpath and returngoal:
 			return self.temp_tree,sub_pathIDs,rem_goalIDs
