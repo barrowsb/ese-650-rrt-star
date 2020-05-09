@@ -18,7 +18,6 @@ obst2 = Obstacle('circle',[2,-2,1], [0,0], np.eye(2))
 obstacles = [obst1, obst2] #list of obstacles
 N = 2000 #number of iterations
 epsilon = 0.5 #near goal tolerance
-maxNumNodes = 1000 #upper limit on tree size 
 eta = 1.0 #max branch length
 gamma = 20.0 #param to set for radius of hyperball
 goalFound = False
@@ -63,10 +62,6 @@ for i in range(N):
 		#7. Rewire tree within the hyperball vicinity
 		tree.rewire(qnewID,naysID,distances)
 
-		#8.Trim tree
-		if np.shape(tree.nodes)[0] > maxNumNodes:
-			tree.forcedRemove(qnewID, goal, goalFound)
-
 	if goalFound:
 		costToGoal, goalID = tree.minGoalID()
 		print("		cost to goal: {}".format(costToGoal))
@@ -83,7 +78,7 @@ def draw_edge(a, b, ax, color = 'blue'):
     ax.add_patch(pathpatch)
 
 #########################################
-########## Plot final FN tree ###########
+########## Plot final RRT* tree #########
 #########################################
 fig, ax = plt.subplots()
 plt.ylim((-15,15))
