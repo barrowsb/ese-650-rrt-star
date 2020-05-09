@@ -228,12 +228,33 @@ class Tree(object):
 	def detectCollision(self, solPath, pcur):
 		pass
 
-	def trimLineage(self,start,end,tree=None):
+	def rerootAtID(self,newrootID,tree=None):
+		# set tree as self.temp_tree to allow recursion
 		if tree==None:
 			tree = self.nodes
-		
-		# return trimmed
-
+		self.temp_tree = tree
+		# recursively strip lineage starting with root node
+		self.recursivelyStrip(self,0,newrootID,tree[:,-1])
+		# update parentIDs
+		strippedToNodeID = np.cumsum(np.isnan(self.temp_tree[:,-1]))
+		for ID in self.temp_tree.shape[0]:
+			parentID = self.temp_tree[ID,-1]
+			if not parentID == None:
+				self.temp_tree[ID,-1] -= strippedToNodeID[]
+		# delete nodes before newroot (where parentID==None)
+		# update self.nodes
+		# return trimmed tree
+	
+	def recursivelyStrip(self,nodeID,newrootID,parentIDs):
+		# Strip this node
+		self.temp_tree[nodeID,-1] = None
+		# Find all children
+		childrenIDs = np.argwhere(parentIDs==nodeID)[0].tolist()
+		# for each child { if not newroot { continue recursion } }
+		for childID in childrenIDs:
+			if not childID == newrootID:
+				recursivelyStrip(self,childID,newroot,parentIDs)
+	
 	def selectBranch(self, pcur):
 		#1. remove all lineages prior to pcur
 		#2. Adjust nx4 matrix 
