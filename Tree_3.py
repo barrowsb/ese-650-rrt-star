@@ -3,9 +3,9 @@ from Obstacle import Obstacle
 import random
 import utils
 
-#RRT*FN
+#RRT*FND
 class Tree(object):
-	def __init__(self, start, goal, obstacles):
+	def __init__(self, start, goal, obstacles, xmin,ymin,xmax, ymax):
 		self.nodes = np.array([0,0,0,-1]).reshape(1,4)
 		#4th column of self.nodes == parentID of root node is None
 		#3rd column of self.nodes == costs to get to each node from root
@@ -14,8 +14,11 @@ class Tree(object):
 		self.goalIDs = np.array([]).astype(int) # list of near-goal nodeIDs
 		self.update_q = [] # for cost propagation
 		self.resolution = 0.0001 # Resolution for obstacle check along an edge
+		self.orphanedTree = np.array([0,0,0,0]).reshape(1,4)
 		self.separatePath = np.array([]) # orphaned self
-		self.pcurID = 0 #set ID of current node to rootID
+		self.pcurID = 0 # ID of current node (initialized to rootID)
+		self.xmin, self.ymin, self.xmax, self.ymax = xmin, ymin, xmax, ymax
+		self.goal = goal
 	
 	def addEdge(self, parentID, child, cost):
 		if parentID < 0 or parentID > np.shape(self.nodes)[0]-1:
@@ -258,13 +261,16 @@ class Tree(object):
 		mask = [not self.collisionFree(self.nodes[i, 0:2]) for i in solPathID]
 		maskShifted = np.append(np.array([0]), mask[:-1])
 		maskSum = mask + maskShifted
+		#Kill all nodes between in-collision nodes as well
+		leftSentinel = np.where(mask)[0][0]
+		rightSentinel =  np.where(mask)[0][-1]+1
+		mask[leftSentinel: rightSentinel ] = [True for i in range(rightSentinel -leftSentinel)]
 		p_separateID = solPathID[np.where(maskSum == 1)[0][-1]]
 		deadNodesID = solPathID[mask]
 		
 		deadNodes =  self.nodes[deadNodesID, 0:2]
 		orphanRoot = self.nodes[p_separateID, 0:2] #p_separate
 		return deadNodes, orphanRoot
-
 		#3. Adjust node indices
 
 	def reconnect(self):
