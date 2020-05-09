@@ -238,14 +238,12 @@ class Tree(object):
 		strippedToNodeID = np.cumsum(np.isnan(self.temp_tree[:,-1]))
 		for ID in range(self.temp_tree.shape[0]):
 			parentID = self.temp_tree[ID,-1]
-			if not parentID == None:
-				self.temp_tree[ID,-1] -= strippedToNodeID[parentID]
+			if not np.isnan(parentID):
+				self.temp_tree[ID,-1] -= strippedToNodeID[int(parentID)]
 		# delete nodes before newroot (where parentID==None)
 		removeIDs = np.argwhere(np.isnan(self.temp_tree[:,-1]))
 		self.temp_tree = np.delete(self.temp_tree,removeIDs,axis=0)
-		# update self.nodes
-		self.nodes = self.temp_tree
-		return self.nodes
+		return self.temp_tree
 	
 	def recursivelyStrip(self,nodeID,newrootID,parentIDs):
 		# Strip this node
@@ -261,6 +259,7 @@ class Tree(object):
 	
 	def selectBranch(self, pcur):
 		#1. remove all lineages prior to pcur
+		self.nodes = rerootAtID(pcur)
 		#2. Adjust nx4 matrix 
 		#3. Adjust goalIDs
 		#return the adjusted solpathID(shorter and ID-correct), passs solpathID to validPath()
