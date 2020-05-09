@@ -18,6 +18,8 @@ class Tree(object):
 		self.pcurID = 0 # ID of current node (initialized to rootID)
 		self.xmin, self.ymin, self.xmax, self.ymax = xmin, ymin, xmax, ymax
 		self.goal = goal
+		self.eta = 1.0
+		self.gamma = 20.0
 	
 	def addEdge(self, parentID, child, cost):
 		if parentID < 0 or parentID > np.shape(self.nodes)[0]-1:
@@ -334,6 +336,7 @@ class Tree(object):
 		return self.temp_tree
 	
 	def validPath(self, solPathID):
+		#returns pathID relative to orphanRoot, and the orphaned tree
 		#1. Find in-collision nodes
 		mask = [not self.collisionFree(self.nodes[i, 0:2]) for i in solPathID]
 		maskShifted = np.append(np.array([0]), mask[:-1])
@@ -347,13 +350,15 @@ class Tree(object):
 		
 		#3. Extract orphan subtree and separate_path to goal
 		bestGoalcost, bestGoalID = self.minGoalID()
-		deadNodes =  self.nodes[deadNodesID, 0:2]
-		self.separatePath = self.nodes[self.retracePathFromTo(bestGoalID, p_separateID), 0:2]
-		self.orphanedTree = self.rerootAtID(p_separateID)
+		#returns deadNodes for debuggin
+		#deadNodes =  self.nodes[deadNodesID, 0:2] 
+		self.separatePathID = self.retracePathFromTo(bestGoalID, p_separateID)
+		self.orphanedTree, self.separatePathID, orphanGoalIDs = self.rerootAtID(p_separateID, self.nodes, self.separatePathID, self.goalIDs)
 		#4. Destroy in-collision lineages and update main tree
 		self.nodes = self.destroyLineage(deadNodesID, None,self.nodes)
 		
-		return self.nodes, deadNodes, self.separatePath
+
+		return self.separatePathID, self.orphanedTree #, deadNodes
 
 	def adoptTree(self, parentNodeID, orphanTree):
 		#args: parentNodeID== id of connection node, orphanTree == mx4 mat
@@ -361,7 +366,6 @@ class Tree(object):
 		orphanRootNewID = np.where(orphanTree[:, 3] == -1)[0][0] + np.shape(self.nodes)[0]
 		orphanTree[np.where(orphanTree[:, 3] != -1),3] = orphanTree[np.where(orphanTree[:, 3] != -1),3] + np.shape(self.nodes)[0]
 		orphanTree[np.where(orphanTree[:, 3] == -1), 3] = parentNodeID #assign parent 
-
 		#2. concat orphanTree matrix to mainTree matrix and update orphanroot's cost
 		fullTree = np.concatenate((self.nodes,orphanTree), axis = 0)
 		fullTree[orphanRootNewID, 2] = fullTree[parentNodeID, 2] + np.linalg.norm(fullTree[parentNodeID, 0:2]- fullTree[orphanRootNewID, 0:2])
@@ -381,8 +385,40 @@ class Tree(object):
 			q.extend(next_indices)
 		return fullTree
 	
-	def reconnect(self):
-		pass
+	def reconnect(self, separatePathID):
+		#returns 2 booleans: 1 indicates whether a path to goal already exists, 1 whether reconnect succeeds
+		reconnectSuccess  = False
+		# separatePathID = np.flip(separatePathID)
+		separatePathID = np.flip(separatePathID)
+		for idx in separatePathID:
+		# for idx in range(np.shape(separatePathID)[0]):
+			#1.center a ball on path node starting from goal
+			n = np.shape(self.nodes)[0]
+			radius = min(self.eta, self.gamma*np.sqrt(np.log(n)/n))
+			pathNode = self.orphanedTree[idx, 0:2]
+			# pathNode = separatePathID[idx, :]
+			# pathNodeID = int(np.where(np.all(separatePathID==pathNode,axis=1))[0])
+			# print("pathNode: {}".format(pathNode))
+			distances, NNids = self.getNN(pathNode, radius) 
+			#2. search for possible connection from neightbor node 
+			for nayID in np.flip(NNids):
+				# print("nayid: {}".format(nayID))
+				branchCost = distances[nayID]
+				#3. if connection is valid, reroot orpahned tree and let main tree adopt it
+				nay = self.nodes[nayID, 0:2][0]
+				# print("nay: {}".format(nay))
+				if self.isValidBranch(nay, pathNode, branchCost):
+					reconnectSuccess = True
+					subtree = self.orphanedTree
+					#ifpathNode is not orphanRoot, reroot
+					if self.orphanedTree[idx, -1] != -1:
+						subtree = self.rerootAtID(idx, self.orphanedTree)
+					# print("SUBTREEE TO ADOPT:  ")
+					# print(subtree)
+					# 4. adopt subtree rooted at furthest node on separatePath
+					self.nodes = self.adoptTree(nayID, self.orphanedTree)
+					return reconnectSuccess
+		return reconnectSuccess
 
 	def regrow(self):
 		pass
