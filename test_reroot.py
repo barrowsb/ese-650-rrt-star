@@ -47,11 +47,14 @@ solnpathIDs = [0,2,7,5]
 trimmed = Tree.Tree([0,0],[10,10],[],-15,-15,15,15)
 subpathIDs = []
 
+# NEWROOT (in range [0,9])
+newroot = 7
+
 # trim tree (change which line is commented to test return structure)
-trimmed.nodes,subpathIDs,trimmed.goalIDs = tree.rerootAtID(2,tree=tree.nodes,pathIDs=solnpathIDs,goalIDs=tree.goalIDs)
-# trimmed.nodes,subpathIDs = tree.rerootAtID(2,tree=tree.nodes,pathIDs=solnpathIDs)
-# trimmed.nodes,trimmed.goalIDs = tree.rerootAtID(2,tree=tree.nodes,goalIDs=tree.goalIDs)
-# trimmed.nodes = tree.rerootAtID(2,tree=tree.nodes)
+trimmed.nodes,subpathIDs,trimmed.goalIDs = tree.rerootAtID(newroot,tree=tree.nodes,pathIDs=solnpathIDs,goalIDs=tree.goalIDs)
+# trimmed.nodes,subpathIDs = tree.rerootAtID(newroot,tree=tree.nodes,pathIDs=solnpathIDs)
+# trimmed.nodes,trimmed.goalIDs = tree.rerootAtID(newroot,tree=tree.nodes,goalIDs=tree.goalIDs)
+# trimmed.nodes = tree.rerootAtID(newroot,tree=tree.nodes)
 
 # show results
 showtree(tree,solnpathIDs,'original')
@@ -72,7 +75,7 @@ print('goals')
 print(trimmed.goalIDs)
 
 # Test selectBranch()
-sbpathIDs = tree.selectBranch(2,solnpathIDs)
+sbpathIDs = tree.selectBranch(newroot,solnpathIDs)
 showtree(tree,sbpathIDs,'selectBranch()')
 print('===SELECTBRANCH()===')
 print('tree')
