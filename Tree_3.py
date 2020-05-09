@@ -231,9 +231,9 @@ class Tree(object):
 		# set tree as self.temp_tree to allow recursion
 		if tree==None:
 			tree = self.nodes
-		self.temp_tree = tree
+		self.temp_tree = np.copy(tree)
 		# recursively strip lineage starting with root node
-		self.recursivelyStrip(0,newrootID,tree[:,-1])
+		self.recursivelyStrip(newrootID,tree[:,-1])
 		# update parentIDs
 		strippedToNodeID = np.cumsum(np.isnan(self.temp_tree[:,-1]))
 		for ID in range(self.temp_tree.shape[0]):
@@ -245,7 +245,7 @@ class Tree(object):
 		self.temp_tree = np.delete(self.temp_tree,removeIDs,axis=0)
 		return self.temp_tree
 	
-	def recursivelyStrip(self,nodeID,newrootID,parentIDs):
+	def recursivelyStrip(self,newrootID,parentIDs,nodeID=0):
 		# Strip this node
 		self.temp_tree[nodeID,-1] = None
 		# Find all children
@@ -255,7 +255,7 @@ class Tree(object):
 			childrenIDs = childrenIDs.tolist()
 			for childID in childrenIDs:
 				if not childID == newrootID:
-					self.recursivelyStrip(childID,newrootID,parentIDs)
+					self.recursivelyStrip(newrootID,parentIDs,nodeID=childID)
 	
 	def selectBranch(self, pcur):
 		#1. remove all lineages prior to pcur
