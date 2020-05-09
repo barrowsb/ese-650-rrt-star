@@ -228,14 +228,14 @@ class Tree(object):
 
 	
 	def detectCollision(self, solPath, pcur):
-		path_list = []
+		# path_list = []
 
-		for i in range(solpath.shape[0] - 1):
-			num_points = int(np.linalg.norm(solpath[i] - solpath[i + 1]) / self.resolution)
-			x = list(np.linspace(solpath[i],solpath[i + 1],num_points))
-			path_list.append(x)
+		# for i in range(solpath.shape[0] - 1):
+		# 	num_points = int(np.linalg.norm(solpath[i] - solpath[i + 1]) / self.resolution)
+		# 	x = list(np.linspace(solpath[i],solpath[i + 1],num_points))
+		# 	path_list.append(x)
 
-		path_list = np.array(path_list)
+		# path_list = np.array(path_list)
 
 		############
 		# Much faster version
@@ -243,9 +243,9 @@ class Tree(object):
 		# Might be less accurate
 		# Since it uses only a fixed number of points along all edges irrespective of edge length
 		############
-		# num_points = 10000
-		# path_list = np.linspace(solpath[0,-1],solpath[1:],num_points)
-		# path_list = path_list.reshape(-1,2)
+		num_points = 10000
+		path_list = np.linspace(solpath[0,-1],solpath[1:],num_points)
+		path_list = path_list.reshape(-1,2)
 
 		# Returns True if a collision is detected
 		return np.logical_not(self.collisionFree(path_list))
