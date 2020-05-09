@@ -43,10 +43,9 @@ class Tree(object):
 		parentID = int(self.nodes[nodeID, 3])
 		while parentID != rootID:
 			path_ID = np.append(path_ID, [parentID])
-			parentID = int(self.nodes[parentID,3])	
+			parentID = int(self.nodes[parentID,3])
 		path_ID = np.append(path_ID, [rootID])	
 		return np.flipud(path_ID)
-			
 
 	def collisionFree(self, node):
 		#node contains either the x-y coord of the robot or the x-y coords along an edge
@@ -250,8 +249,8 @@ class Tree(object):
 		# Returns True if a collision is detected
 		return np.logical_not(self.collisionFree(path_list))
 
-	def rerootAtID(self,newrootID,tree=None):
-		# set tree as self.temp_tree to allow recursion
+	def rerootAtID(self,newrootID,tree=None,pathIDs=None,goalIDs=None):
+		# save copy of tree as self.temp_tree to allow recursion
 		if tree==None:
 			tree = self.nodes
 		self.temp_tree = np.copy(tree)
@@ -266,6 +265,24 @@ class Tree(object):
 		# delete nodes before newroot (where parentID==None)
 		removeIDs = np.argwhere(np.isnan(self.temp_tree[:,-1]))
 		self.temp_tree = np.delete(self.temp_tree,removeIDs,axis=0)
+		# shift subpathIDs
+		returnpath = False
+		if not pathIDs == None:
+			returnpath = True
+			sub_pathIDs = [int(ID)-strippedToNodeID[int(ID)] for ID in pathIDs]
+			sub_pathIDs = np.array(sub_pathIDs)[np.greater_equal(sub_pathIDs,0,dtype=int)].tolist()
+		# shift remaining subset of goalIDs
+		returngoal = False
+		if not goalIDs == None:
+			returngoal = True
+			rem_goalIDs = []
+		# Intelligent return
+		if returnpath and returngoal:
+			return self.temp_tree,sub_pathIDs,rem_goalIDs
+		if returnpath:
+			return self.temp_tree,sub_pathIDs
+		if returngoal:
+			return self.temp_tree,rem_goalIDs
 		return self.temp_tree
 	
 	def recursivelyStrip(self,newrootID,parentIDs,nodeID=0):
@@ -335,7 +352,7 @@ class Tree(object):
 		#4. Destroy in-collision lineages and update main tree
 		self.nodes = self.destroyLineage(deadNodesID, None,self.nodes)
 		
-		return '''self.nodes, deadNodes,''' self.separatePath
+		#return '''self.nodes, deadNodes,''' self.separatePath
 
 	def adoptTree(self, parentNodeID, orphanTree):
 		#args: parentNodeID== id of connection node, orphanTree == mx4 mat
