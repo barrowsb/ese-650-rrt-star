@@ -19,7 +19,7 @@ def showtree(tree,title):
 	plt.show()
 
 # original tree
-tree = Tree.Tree([0,0],[10,10])
+tree = Tree.Tree([0,0],[10,10],[],-15,-15,15,15)
 tree.nodes = np.array(
 	  [[ 0. ,  0. ,  0. , -1. ],
        [ 0. ,  2. ,  2. ,  0. ],
@@ -33,7 +33,7 @@ tree.nodes = np.array(
        [ 3. ,  4. ,  6. ,  7. ]])
 
 # empty tree object for trimmed tree
-trimmed = Tree.Tree([0,0],[10,10])
+trimmed = Tree.Tree([0,0],[10,10],[],-15,-15,15,15)
 
 # trim tree
 trimmed.nodes = tree.rerootAtID(2)
