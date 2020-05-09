@@ -18,6 +18,7 @@ class Tree(object):
 		self.pcurID = 0 # ID of current node (initialized to rootID)
 		self.xmin, self.ymin, self.xmax, self.ymax = xmin, ymin, xmax, ymax
 		self.goal = goal
+		self.temp_tree = np.array([0,0,0,-1]).reshape(1,4)
 	
 	def addEdge(self, parentID, child, cost):
 		if parentID < 0 or parentID > np.shape(self.nodes)[0]-1:
@@ -249,10 +250,8 @@ class Tree(object):
 		# Returns True if a collision is detected
 		return np.logical_not(self.collisionFree(path_list))
 
-	def rerootAtID(self,newrootID,tree=None,pathIDs=None,goalIDs=None):
+	def rerootAtID(self,newrootID,tree,pathIDs=None,goalIDs=None):
 		# save copy of tree as self.temp_tree to allow recursion
-		if tree==None:
-			tree = self.nodes
 		self.temp_tree = np.copy(tree)
 		# recursively strip lineage starting with root node
 		self.recursivelyStrip(newrootID,tree[:,-1])
@@ -265,6 +264,8 @@ class Tree(object):
 		# delete nodes before newroot (where parentID==None)
 		removeIDs = np.argwhere(np.isnan(self.temp_tree[:,-1]))
 		self.temp_tree = np.delete(self.temp_tree,removeIDs,axis=0)
+		out_tree = self.temp_tree
+		self.temp_tree = np.array([0,0,0,-1]).reshape(1,4)
 		# shift subpathIDs
 		returnpath = False
 		if not pathIDs == None:
@@ -276,15 +277,15 @@ class Tree(object):
 		if not goalIDs == None:
 			returngoal = True
 			rem_goalIDs = [int(ID)-strippedToNodeID[int(ID)] for ID in goalIDs]
-			rem_goalIDs = np.array(rem_goalIDs)[np.greater_equal(rem_goalIDs,0,dtype=int)].tolist()
+			rem_goalIDs = np.array(rem_goalIDs)[np.greater_equal(rem_goalIDs,1,dtype=int)].tolist()
 		# Intelligent return
 		if returnpath and returngoal:
-			return self.temp_tree,sub_pathIDs,rem_goalIDs
+			return out_tree,sub_pathIDs,rem_goalIDs
 		if returnpath:
-			return self.temp_tree,sub_pathIDs
+			return out_tree,sub_pathIDs
 		if returngoal:
-			return self.temp_tree,rem_goalIDs
-		return self.temp_tree
+			return out_tree,rem_goalIDs
+		return out_tree
 	
 	def recursivelyStrip(self,newrootID,parentIDs,nodeID=0):
 		# Strip this node
@@ -298,13 +299,14 @@ class Tree(object):
 				if not childID == newrootID:
 					self.recursivelyStrip(newrootID,parentIDs,nodeID=childID)
 	
-	def selectBranch(self, pcur):
-		#1. remove all lineages prior to pcur
-		self.nodes = rerootAtID(pcur)
-		#2. Adjust nx4 matrix 
-		#3. Adjust goalIDs
+	def selectBranch(self, pcurID, solnpathIDs):
+		# modify tree in place by rerooting at pcurID:
+		#   - remove all lineages prior to pcur (adjust nx4 matrix)
+		#   - adjust goalIDs
+		#   - output subpathIDs
 		#return the adjusted solpathID(shorter and ID-correct), passs solpathID to validPath()
-		pass
+		self.nodes,subpathIDs,self.goalIDs = self.rerootAtID(pcurID,tree=self.nodes,pathIDs=solnpathIDs,goalIDs=self.goalIDs)
+		return subpathIDs
 
 	def destroyLineage(self, ancestorIDs, babyID, tree):
 		#returns new tree with lineage(s) rooted at ancestorID(s) removed 
