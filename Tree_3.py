@@ -37,13 +37,14 @@ class Tree(object):
 		nearest_node = self.nodes[nearest_nodeID,0:2]
 		return nearest_node, nearest_nodeID
 
-	def retracePathFrom(self, nodeID):
+	def retracePathFromTo(self, nodeID, rootID = -1):
 		#returns nodeID sequence from the root node to the given node
 		path_ID = np.array([nodeID])
 		parentID = int(self.nodes[nodeID, 3])
-		while parentID != -1:
+		while parentID != rootID:
 			path_ID = np.append(path_ID, [parentID])
-			parentID = int(self.nodes[parentID,3])			
+			parentID = int(self.nodes[parentID,3])	
+		path_ID = np.append(path_ID, [rootID])	
 		return np.flipud(path_ID)
 			
 
@@ -213,14 +214,14 @@ class Tree(object):
 			if not exhaust:
 				if goalFound:
 					costToGoal, goalID = self.minGoalID()
-					solpath_ID = self.retracePathFrom(goalID)
+					solpath_ID = self.retracePathFromTo(goalID)
 					return self.nodes[solpath_ID, 0:2], solpath_ID
 					# print("		cost to goal: {}".format(costToGoal))
 					# iterations.append(i)
 					# costs.append(costToGoal)
 		if goalFound:
 			costToGoal, goalID = self.minGoalID()
-			solpath_ID = self.retracePathFrom(goalID)
+			solpath_ID = self.retracePathFromTo(goalID)
 			return self.nodes[solpath_ID, 0:2], solpath_ID
 
 		return None
@@ -287,34 +288,66 @@ class Tree(object):
 		#return the adjusted solpathID(shorter and ID-correct), passs solpathID to validPath()
 		pass
 
-	def validPath(self, solPath):
+	def destroyLineage(self, ancestorIDs, babyID, tree):
+		#returns new tree with lineage(s) rooted at ancestorID(s) removed 
+		#remove all nodes in the lineage staring from ancestor down to(but not including) baby 
+		#args: tree== nx4 matrix
+		#1. Nan-mark nodes to be removed
+		self.temp_tree = np.copy(tree)
+		for ancesID in ancestorIDs:
+			self.recursivelyStrip(babyID,tree[:, -1], ancesID)
+		#2. delete nodes 
+		removeIDs = np.argwhere(np.isnan(self.temp_tree[:,-1]))
+		# print(removeIDs)
+		#4. update parentID and possibly goalID
+		for removeID in removeIDs:
+			self.temp_tree  = np.delete(self.temp_tree , removeID, axis = 0)
+			if removeID in self.goalIDs:
+				#adjust goal ID
+				self.goalIDs = np.delete(self.goalIDs,np.argwhere(self.goalIDs == removeID))
+			#adjust parentIDs
+			parents = self.temp_tree[:, 3]
+			self.temp_tree[np.where(parents > removeID), 3]= self.temp_tree[np.where(parents > removeID), 3]-1
+			#adjust removeIDs
+			removeIDs[np.where(removeIDs> removeID)] = removeIDs[np.where(removeIDs> removeID)] - 1
+			# #adjust goalIDs		
+			# self.goalIDs[np.where(self.goalIDs > removeID)]= self.goalIDs[np.where(self.goalIDs > removeID)]-1
+
+		return self.temp_tree
+	
+	def validPath(self, solPathID):
 		#1. Find in-collision nodes
 		mask = [not self.collisionFree(self.nodes[i, 0:2]) for i in solPathID]
 		maskShifted = np.append(np.array([0]), mask[:-1])
 		maskSum = mask + maskShifted
-		#Kill all nodes between in-collision nodes as well
+		#2. Find all nodes between in-collision nodes as well
 		leftSentinel = np.where(mask)[0][0]
 		rightSentinel =  np.where(mask)[0][-1]+1
 		mask[leftSentinel: rightSentinel ] = [True for i in range(rightSentinel -leftSentinel)]
 		p_separateID = solPathID[np.where(maskSum == 1)[0][-1]]
 		deadNodesID = solPathID[mask]
 		
+		#3. Extract orphan subtree and separate_path to goal
+		bestGoalcost, bestGoalID = self.minGoalID()
 		deadNodes =  self.nodes[deadNodesID, 0:2]
-		orphanRoot = self.nodes[p_separateID, 0:2] #p_separate
-		return deadNodes, orphanRoot
-		#3. Adjust node indices
+		self.separatePath = self.nodes[self.retracePathFromTo(bestGoalID, p_separateID), 0:2]
+		self.orphanedTree = self.rerootAtID(p_separateID)
+		#4. Destroy in-collision lineages and update main tree
+		self.nodes = self.destroyLineage(deadNodesID, None,self.nodes)
+		
+		return '''self.nodes, deadNodes,''' self.separatePath
 
-	def adoptTree(self, mainNodeID, orphanTree):
-		#args: mainTree== nx4 mat, mainNodeID== id of connection node, orphanTree == mx4 mat
-		#1.Adjust orphan ParentIDs and set parent of orphanroot to mainNodeID
+	def adoptTree(self, parentNodeID, orphanTree):
+		#args: parentNodeID== id of connection node, orphanTree == mx4 mat
+		#1.Adjust orphan ParentIDs and set parent of orphanroot to parentNodeID
 		orphanRootNewID = np.where(orphanTree[:, 3] == -1)[0][0] + np.shape(self.nodes)[0]
 		orphanTree[np.where(orphanTree[:, 3] != -1),3] = orphanTree[np.where(orphanTree[:, 3] != -1),3] + np.shape(self.nodes)[0]
-		orphanTree[np.where(orphanTree[:, 3] == -1), 3] = mainNodeID #assign parent 
+		orphanTree[np.where(orphanTree[:, 3] == -1), 3] = parentNodeID #assign parent 
 
 		#2. concat orphanTree matrix to mainTree matrix and update orphanroot's cost
 		fullTree = np.concatenate((self.nodes,orphanTree), axis = 0)
-		fullTree[orphanRootNewID, 2] = fullTree[mainNodeID, 2] + np.linalg.norm(fullTree[mainNodeID, 0:2]- fullTree[orphanRootNewID, 0:2])
-		#3. and propagate cost from main tree
+		fullTree[orphanRootNewID, 2] = fullTree[parentNodeID, 2] + np.linalg.norm(fullTree[parentNodeID, 0:2]- fullTree[orphanRootNewID, 0:2])
+		#3. propagate cost from main tree
 		q = [] #queue
 		children_indices = np.argwhere(fullTree[:,3] == orphanRootNewID) 
 		children_indices = list(children_indices)
