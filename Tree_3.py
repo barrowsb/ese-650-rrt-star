@@ -335,7 +335,7 @@ class Tree(object):
 		#4. Destroy in-collision lineages and update main tree
 		self.nodes = self.destroyLineage(deadNodesID, None,self.nodes)
 		
-		return '''self.nodes, deadNodes,''' self.separatePath
+		return self.nodes, deadNodes, self.separatePath
 
 	def adoptTree(self, parentNodeID, orphanTree):
 		#args: parentNodeID== id of connection node, orphanTree == mx4 mat
