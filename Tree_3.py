@@ -273,6 +273,32 @@ class Tree(object):
 		return deadNodes, orphanRoot
 		#3. Adjust node indices
 
+	def adoptTree(self, mainNodeID, orphanTree):
+		#args: mainTree== nx4 mat, mainNodeID== id of connection node, orphanTree == mx4 mat
+		#1.Adjust orphan ParentIDs and set parent of orphanroot to mainNodeID
+		orphanRootNewID = np.where(orphanTree[:, 3] == -1)[0][0] + np.shape(self.nodes)[0]
+		orphanTree[np.where(orphanTree[:, 3] != -1),3] = orphanTree[np.where(orphanTree[:, 3] != -1),3] + np.shape(self.nodes)[0]
+		orphanTree[np.where(orphanTree[:, 3] == -1), 3] = mainNodeID #assign parent 
+
+		#2. concat orphanTree matrix to mainTree matrix and update orphanroot's cost
+		fullTree = np.concatenate((self.nodes,orphanTree), axis = 0)
+		fullTree[orphanRootNewID, 2] = fullTree[mainNodeID, 2] + np.linalg.norm(fullTree[mainNodeID, 0:2]- fullTree[orphanRootNewID, 0:2])
+		#3. and propagate cost from main tree
+		q = [] #queue
+		children_indices = np.argwhere(fullTree[:,3] == orphanRootNewID) 
+		children_indices = list(children_indices)
+		q.extend(children_indices)
+		#COST PROPAGATION ####
+		while len(q) != 0:
+			child_index = int(q.pop(0))
+			parent_index = int(fullTree[child_index,3])
+			dist = fullTree[child_index,0:2] - fullTree[parent_index,0:2]
+			fullTree[child_index,2] = fullTree[parent_index,2] + np.linalg.norm(dist) #update child's cost
+			next_indices = np.argwhere(fullTree[:,3] == child_index)
+			next_indices = list(next_indices)
+			q.extend(next_indices)
+		return fullTree
+	
 	def reconnect(self):
 		pass
 
