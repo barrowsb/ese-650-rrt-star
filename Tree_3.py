@@ -355,8 +355,8 @@ class Tree(object):
 		bestGoalcost, bestGoalID = self.minGoalID()
 		#returns deadNodes for debuggin
 		#deadNodes =  self.nodes[deadNodesID, 0:2] 
-		self.separatePathID = self.retracePathFromTo(bestGoalID, p_separateID)
-		self.orphanedTree, self.separatePathID, orphanGoalIDs = self.rerootAtID(p_separateID, self.nodes, self.separatePathID, self.goalIDs)
+		pathID = self.retracePathFromTo(bestGoalID, p_separateID)
+		self.orphanedTree, self.separatePathID, orphanGoalIDs = self.rerootAtID(p_separateID, self.nodes, pathID, self.goalIDs)
 		#4. Destroy in-collision lineages and update main tree
 		self.nodes = self.destroyLineage(deadNodesID, None,self.nodes)
 		
