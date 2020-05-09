@@ -5,11 +5,10 @@ import utils
 
 #RRT*FN
 class Tree(object):
-	def __init__(self, start, goal, obstacles):
-		self.nodes = np.array([0,0,0,-1]).reshape(1,4)
+	def __init__(self, start, goal, obstacles=[]):
+		self.nodes = np.array([start[0],start[1],0,-1]).reshape(1,4)
 		#4th column of self.nodes == parentID of root node is None
-		#3rd column of self.nodes == costs to get to each node from root
-		
+		#3rd column of self.nodes == costs to get to each node from root		
 		self.obstacles = obstacles # a list of Obstacle Objects
 		self.goalIDs = np.array([]).astype(int) # list of near-goal nodeIDs
 		self.update_q = [] # for cost propagation
@@ -234,7 +233,7 @@ class Tree(object):
 			tree = self.nodes
 		self.temp_tree = tree
 		# recursively strip lineage starting with root node
-		self.recursivelyStrip(self,0,newrootID,tree[:,-1])
+		self.recursivelyStrip(0,newrootID,tree[:,-1])
 		# update parentIDs
 		strippedToNodeID = np.cumsum(np.isnan(self.temp_tree[:,-1]))
 		for ID in range(self.temp_tree.shape[0]):
@@ -252,17 +251,20 @@ class Tree(object):
 		# Strip this node
 		self.temp_tree[nodeID,-1] = None
 		# Find all children
-		childrenIDs = np.argwhere(parentIDs==nodeID)[0].tolist()
+		childrenIDs = np.argwhere(parentIDs==nodeID).flatten()
 		# for each child { if not newroot { continue recursion } }
-		for childID in childrenIDs:
-			if not childID == newrootID:
-				recursivelyStrip(self,childID,newroot,parentIDs)
+		if not childrenIDs.shape[0]==0:
+			childrenIDs = childrenIDs.tolist()
+			for childID in childrenIDs:
+				if not childID == newrootID:
+					self.recursivelyStrip(childID,newrootID,parentIDs)
 	
 	def selectBranch(self, pcur):
 		#1. remove all lineages prior to pcur
 		#2. Adjust nx4 matrix 
 		#3. Adjust goalIDs
 		#return the adjusted solpathID(shorter and ID-correct), passs solpathID to validPath()
+		pass
 
 	def validPath(self, solPath):
 		#1. Find in-collision nodes
