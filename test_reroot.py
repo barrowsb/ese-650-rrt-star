@@ -2,13 +2,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import Tree_3 as Tree
 
-def showtree(tree,path,goals,title):
+# visualization
+def showtree(tree,path,title):
 	fig,ax = plt.subplots()
 	ax.set_xlim(-2,5)
 	ax.set_ylim(-2,5)
 	ax.set_aspect('equal', adjustable='box')
 	for ID,node in enumerate(tree.nodes):
-		if ID in goals:
+		if ID in tree.goalIDs:
 			m = '*'
 		else:
 			m = 'o'
@@ -39,28 +40,47 @@ tree.nodes = np.array(
        [ 3. ,  3. ,  5. ,  2. ],
        [-1. ,  2. ,  3. ,  1. ],
        [ 3. ,  4. ,  6. ,  7. ]])
+tree.goalIDs = [3,5,9]
+solnpathIDs = [0,2,7,5]
 
 # empty tree object for trimmed tree
 trimmed = Tree.Tree([0,0],[10,10],[],-15,-15,15,15)
-pathIDs = [0,2,7,5]
-goalIDs = [3,5,9]
+subpathIDs = []
 
-# trim tree
-trimmed.nodes,sub_pathIDs,rem_goalIDs = tree.rerootAtID(2,pathIDs=pathIDs,goalIDs=goalIDs)
+# NEWROOT (in range [0,9])
+newroot = 7
 
-showtree(tree,pathIDs,goalIDs,'original')
-showtree(trimmed,sub_pathIDs,rem_goalIDs,'rerooted')
-print('ORIGINAL')
+# trim tree (change which line is commented to test return structure)
+trimmed.nodes,subpathIDs,trimmed.goalIDs = tree.rerootAtID(newroot,tree=tree.nodes,pathIDs=solnpathIDs,goalIDs=tree.goalIDs)
+# trimmed.nodes,subpathIDs = tree.rerootAtID(newroot,tree=tree.nodes,pathIDs=solnpathIDs)
+# trimmed.nodes,trimmed.goalIDs = tree.rerootAtID(newroot,tree=tree.nodes,goalIDs=tree.goalIDs)
+# trimmed.nodes = tree.rerootAtID(newroot,tree=tree.nodes)
+
+# show results
+showtree(tree,solnpathIDs,'original')
+showtree(trimmed,subpathIDs,'rerooted')
+print('===ORIGINAL===')
 print('tree')
 print(tree.nodes)
 print('path')
-print(pathIDs)
+print(solnpathIDs)
 print('goals')
-print(goalIDs)
-print('REROOTED')
+print(tree.goalIDs)
+print('===REROOTED===')
 print('tree')
 print(trimmed.nodes)
 print('path')
-print(sub_pathIDs)
+print(subpathIDs)
 print('goals')
-print(rem_goalIDs)
+print(trimmed.goalIDs)
+
+# Test selectBranch()
+sbpathIDs = tree.selectBranch(newroot,solnpathIDs)
+showtree(tree,sbpathIDs,'selectBranch()')
+print('===SELECTBRANCH()===')
+print('tree')
+print(tree.nodes)
+print('path')
+print(sbpathIDs)
+print('goals')
+print(tree.goalIDs)
