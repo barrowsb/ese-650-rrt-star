@@ -237,13 +237,16 @@ class Tree(object):
 		self.recursivelyStrip(self,0,newrootID,tree[:,-1])
 		# update parentIDs
 		strippedToNodeID = np.cumsum(np.isnan(self.temp_tree[:,-1]))
-		for ID in self.temp_tree.shape[0]:
+		for ID in range(self.temp_tree.shape[0]):
 			parentID = self.temp_tree[ID,-1]
 			if not parentID == None:
-				self.temp_tree[ID,-1] -= strippedToNodeID[]
+				self.temp_tree[ID,-1] -= strippedToNodeID[parentID]
 		# delete nodes before newroot (where parentID==None)
+		removeIDs = np.argwhere(np.isnan(self.temp_tree[:,-1]))
+		self.temp_tree = np.delete(self.temp_tree,removeIDs,axis=0)
 		# update self.nodes
-		# return trimmed tree
+		self.nodes = self.temp_tree
+		return self.nodes
 	
 	def recursivelyStrip(self,nodeID,newrootID,parentIDs):
 		# Strip this node
