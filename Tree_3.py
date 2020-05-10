@@ -374,7 +374,7 @@ class Tree(object):
 		children_indices = np.argwhere(fullTree[:,3] == orphanRootNewID) 
 		children_indices = list(children_indices)
 		q.extend(children_indices)
-		#COST PROPAGATION ####
+		#4.COST PROPAGATION ####
 		while len(q) != 0:
 			child_index = int(q.pop(0))
 			parent_index = int(fullTree[child_index,3])
@@ -383,6 +383,12 @@ class Tree(object):
 			next_indices = np.argwhere(fullTree[:,3] == child_index)
 			next_indices = list(next_indices)
 			q.extend(next_indices)
+		#5. Recover goalIDs
+		self.nodes = fullTree
+		normOfDiffs  = np.linalg.norm(self.nodes[:, 0:2] - self.goal, axis =1)
+		self.goalIDs = np.argwhere(normOfDiffs < self.epsilon)
+
+		
 		return fullTree
 	
 	def reconnect(self, separatePathID):
@@ -477,11 +483,11 @@ class Tree(object):
 								subtree = self.orphanedTree
 								#ifpathNode is not orphanRoot, reroot
 								if self.orphanedTree[idx, -1] != -1:
-									subtree = self.rerootAtID(idx, self.orphanedTree)
+									subtree = self.rerootAtID(idx, subtree)
 								# print("SUBTREEE TO ADOPT:  ")
 								# print(subtree)
 								# 4. adopt subtree rooted at furthest node on separatePath at qnewID to main tree
-								self.nodes = self.adoptTree(qnewID, self.orphanedTree)
+								self.nodes = self.adoptTree(qnewID, subtree)
 								costToGoal, goalID = self.minGoalID()
 								solpath_ID = self.retracePathFromTo(goalID)
 								return self.nodes[solpath_ID, 0:2], solpath_ID
