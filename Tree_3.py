@@ -276,19 +276,21 @@ class Tree(object):
 		returnpath = False
 		if not pathIDs is None:
 			returnpath = True
+			q = np.array([np.argwhere(pathIDs == i)[0][0] if i in pathIDs else np.nan for i in removeIDs])
+			q = q[ ~np.isnan(q)]
+			pathIDs = np.delete(pathIDs, q, axis = 0)
 			sub_pathIDs = [int(ID)-strippedToNodeID[int(ID)] for ID in pathIDs]
-			#sub_pathIDs = np.array(sub_pathIDs)[np.greater_equal(sub_pathIDs,0,dtype=int)]
-			shiftedRootID = np.where(out_tree[:,-1]==-1)[0]
-			splitIDs = np.where(sub_pathIDs==shiftedRootID)[0]
-			sub_pathIDs = np.split(sub_pathIDs,splitIDs)[-1].tolist()
+			sub_pathIDs = np.array(sub_pathIDs)[np.greater_equal(sub_pathIDs,0,dtype=int)]
 		# shift remaining subset of goalIDs
 		returngoal = False
 		if not goalIDs is None:
 			returngoal = True
-			# TODO: this is not working yet
+			q = np.array([np.argwhere(goalIDs == i)[0][0] if i in goalIDs else np.nan for i in removeIDs])
+			q = q[ ~np.isnan(q)]
+			goalIDs =  np.delete(goalIDs,q, axis = 0)
 			rem_goalIDs = [int(ID)-strippedToNodeID[int(ID)] for ID in goalIDs]
-			rem_goalIDs = np.array(rem_goalIDs)[np.greater_equal(rem_goalIDs,1,dtype=int)].tolist()
-		# Intelligent return
+			rem_goalIDs = np.array(rem_goalIDs)[np.greater_equal(rem_goalIDs,1,dtype=int)]
+			# Intelligent return
 		if returnpath and returngoal:
 			return out_tree,sub_pathIDs,rem_goalIDs
 		if returnpath:
