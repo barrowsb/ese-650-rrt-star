@@ -289,7 +289,8 @@ class Tree(object):
 			q = q[ ~np.isnan(q)]
 			goalIDs =  np.delete(goalIDs,q, axis = 0)
 			rem_goalIDs = [int(ID)-strippedToNodeID[int(ID)] for ID in goalIDs]
-			rem_goalIDs = np.array(rem_goalIDs)[np.greater_equal(rem_goalIDs,1,dtype=int)]# Intelligent return
+			rem_goalIDs = np.array(rem_goalIDs)[np.greater_equal(rem_goalIDs,1,dtype=int)]
+			# Intelligent return
 		if returnpath and returngoal:
 			return out_tree,sub_pathIDs,rem_goalIDs
 		if returnpath:
