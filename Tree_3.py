@@ -231,7 +231,7 @@ class Tree(object):
 		return None
 
 	
-	def detectCollision(self, solPath, pcur):
+	def detectCollision(self, solpath):
 		# path_list = []
 
 		# for i in range(solpath.shape[0] - 1):
