@@ -352,11 +352,7 @@ class Tree(object):
 		deadNodesID = solPathID[mask]
 		
 		#3. Extract orphan subtree and separate_path to goal
-		bestGoalcost, bestGoalID = self.minGoalID()
-		#returns deadNodes for debuggin
-		#deadNodes =  self.nodes[deadNodesID, 0:2] 
-		pathID = self.retracePathFromTo(bestGoalID, p_separateID)
-		self.orphanedTree, self.separatePathID, orphanGoalIDs = self.rerootAtID(p_separateID, self.nodes, pathID, self.goalIDs)
+		self.orphanedTree, self.separatePathID, orphanGoalIDs = self.rerootAtID(p_separateID, self.nodes, solPathID, self.goalIDs)
 		#4. Destroy in-collision lineages and update main tree
 		self.nodes = self.destroyLineage(deadNodesID, None,self.nodes)
 		
