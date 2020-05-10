@@ -259,13 +259,14 @@ class Tree(object):
 		self.temp_tree = np.copy(tree)
 		# recursively strip lineage starting with root node
 		papaIDs = tree[:,-1]
-		self.recursivelyStrip(newrootID,papaIDs,np.where(papaIDs==-1))
-		# update parentIDs
+		rootID = np.where(papaIDs==-1)[0][0]
+		self.recursivelyStrip(newrootID,papaIDs,rootID)
 		strippedToNodeID = np.cumsum(np.isnan(self.temp_tree[:,-1]))
 		for ID in range(self.temp_tree.shape[0]):
 			parentID = self.temp_tree[ID,-1]
-			if not np.isnan(parentID):
+			if not np.isnan(ID) and not np.isnan(parentID):
 				self.temp_tree[ID,-1] -= strippedToNodeID[int(parentID)]
+		self.temp_tree[newrootID,-1] = -1
 		# delete nodes before newroot (where parentID==None)
 		removeIDs = np.argwhere(np.isnan(self.temp_tree[:,-1]))
 		self.temp_tree = np.delete(self.temp_tree,removeIDs,axis=0)
@@ -273,13 +274,13 @@ class Tree(object):
 		self.temp_tree = np.array([0,0,0,-1]).reshape(1,4)
 		# shift subpathIDs
 		returnpath = False
-		if not pathIDs == None:
+		if not pathIDs is None:
 			returnpath = True
 			sub_pathIDs = [int(ID)-strippedToNodeID[int(ID)] for ID in pathIDs]
 			sub_pathIDs = np.array(sub_pathIDs)[np.greater_equal(sub_pathIDs,0,dtype=int)].tolist()
 		# shift remaining subset of goalIDs
 		returngoal = False
-		if not goalIDs == None:
+		if not goalIDs is None:
 			returngoal = True
 			rem_goalIDs = [int(ID)-strippedToNodeID[int(ID)] for ID in goalIDs]
 			rem_goalIDs = np.array(rem_goalIDs)[np.greater_equal(rem_goalIDs,1,dtype=int)].tolist()
