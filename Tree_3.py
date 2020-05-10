@@ -178,7 +178,7 @@ class Tree(object):
 	####################################
 	######### RRT* FND Methods #########
 	####################################
-	def initGrowth(self, exhaust = False, N = 10000, maxNumNodes = 6000, epsilon = 0.5, eta = 1.0, gamma = 20.0  ):
+	def initGrowth(self, exhaust = False, N = 10000, maxNumNodes = 6000, epsilon = 0.5, eta = 1.0, gamma = 20.0):
 		#exhaust: if true, finish all N iterations before returning solPath
 		#initial tree growth. Returns solution path and its ID sequence
 		print("Begin initial growth...")
@@ -444,7 +444,7 @@ class Tree(object):
 		while not goalFound:
 			# print("iter {} || number of nodes: {}".format(i, self.nodes.shape[0]))
 			#2. Sample
-			qrand = utils.sampleUniform(self.xmin, self.ymin, self.xmax, self.ymax)
+			qrand = utils.sampleUniform(self.xmin,self.ymin,self.xmax,self.ymax)
 			#3. Find nearest node to qrand
 			qnear, qnearID = self.getNearest(qrand)
 			qnew = utils.steer(eta,qnear,qrand)
@@ -483,47 +483,64 @@ class Tree(object):
 
 				else:
 					separatePathID = np.flip(self.separatePathID)
-					for idx in separatePathID:
+					dist = np.linalg.norm(self.orphanedTree[separatePathID,0:2] - qnew)
+					n = np.shape(self.nodes)[0] #number of nodes in self
+					radius = min(eta,gamma * np.sqrt(np.log(n) / n))
+					poss_connectionIDs = separatePathID[dist <= radius]
+
+					for i,idx in enumerate(poss_connectionIDs):
 						pathNode = self.orphanedTree[idx,0:2]
-						branchCost = np.linalg.norm(pathNode - qnew)
+						branchCost = dist[i]
 						if self.isValidBranch(pathNode,qnew,branchCost):
 							goalFound = True
 
-							if branchCost <= 1:
-								subtree = np.copy(self.orphanedTree)
-								#ifpathNode is not orphanRoot, reroot
-								if self.orphanedTree[idx, -1] != -1:
-									subtree = self.rerootAtID(idx,subtree)
-								# print("SUBTREEE TO ADOPT:  ")
-								# print(subtree)
-								# 4. adopt subtree rooted at furthest node on separatePath at qnewID to main tree
-								self.nodes = self.adoptTree(qnewID,subtree)
-								costToGoal,goalID = self.minGoalID()
-								solpath_ID = self.retracePathFromTo(goalID)
-								return self.nodes[solpath_ID,0:2],solpath_ID
+							subtree = np.copy(self.orphanedTree)
+							#ifpathNode is not orphanRoot, reroot
+							if self.orphanedTree[idx, -1] != -1:
+								subtree = self.rerootAtID(idx,subtree)
+							# print("SUBTREEE TO ADOPT:  ")
+							# print(subtree)
+							# 4. adopt subtree rooted at furthest node on separatePath at qnewID to main tree
+							self.nodes = self.adoptTree(qnewID,subtree)
+							costToGoal,goalID = self.minGoalID()
+							solpath_ID = self.retracePathFromTo(goalID)
+							return self.nodes[solpath_ID,0:2],solpath_ID
 
-							else:
-								while branchCost > 1:
-									qnear = np.copy(qnew)
-									# Sampling a new point at a distance of eta from qnew
-									# along the line connecting qnew and pathNode
-									qnew = utils.steer(eta,qnear,pathNode)
-									# Not checking for validity since if path from qnew to PathNode is valid
-									# Then path from steered node to qnew will also be valid
-									cost = np.linalg.norm(qnew - qnear) + self.nodes[qnewID,2]
-									qnewID = self.addEdge(int(qnewID),qnew,cost)
-									branchCost = np.linalg.norm(pathNode - qnew)
-									pass
-								subtree = np.copy(self.orphanedTree)
-								#ifpathNode is not orphanRoot, reroot
-								if self.orphanedTree[idx, -1] != -1:
-									subtree = self.rerootAtID(idx,subtree)
-								# print("SUBTREEE TO ADOPT:  ")
-								# print(subtree)
-								# 4. adopt subtree rooted at furthest node on separatePath
-								self.nodes = self.adoptTree(qnewID,subtree)
-								costToGoal, goalID = self.minGoalID()
-								solpath_ID = self.retracePathFromTo(goalID)
-								return self.nodes[solpath_ID, 0:2], solpath_ID
+							# if branchCost <= 1:
+							# 	subtree = np.copy(self.orphanedTree)
+							# 	#ifpathNode is not orphanRoot, reroot
+							# 	if self.orphanedTree[idx, -1] != -1:
+							# 		subtree = self.rerootAtID(idx,subtree)
+							# 	# print("SUBTREEE TO ADOPT:  ")
+							# 	# print(subtree)
+							# 	# 4. adopt subtree rooted at furthest node on separatePath at qnewID to main tree
+							# 	self.nodes = self.adoptTree(qnewID,subtree)
+							# 	costToGoal,goalID = self.minGoalID()
+							# 	solpath_ID = self.retracePathFromTo(goalID)
+							# 	return self.nodes[solpath_ID,0:2],solpath_ID
+
+							# else:
+							# 	while branchCost > 1:
+							# 		qnear = np.copy(qnew)
+							# 		# Sampling a new point at a distance of eta from qnew
+							# 		# along the line connecting qnew and pathNode
+							# 		qnew = utils.steer(eta,qnear,pathNode)
+							# 		# Not checking for validity since if path from qnew to PathNode is valid
+							# 		# Then path from steered node to qnew will also be valid
+							# 		cost = np.linalg.norm(qnew - qnear) + self.nodes[qnewID,2]
+							# 		qnewID = self.addEdge(int(qnewID),qnew,cost)
+							# 		branchCost = np.linalg.norm(pathNode - qnew)
+							# 		pass
+							# 	subtree = np.copy(self.orphanedTree)
+							# 	#ifpathNode is not orphanRoot, reroot
+							# 	if self.orphanedTree[idx, -1] != -1:
+							# 		subtree = self.rerootAtID(idx,subtree)
+							# 	# print("SUBTREEE TO ADOPT:  ")
+							# 	# print(subtree)
+							# 	# 4. adopt subtree rooted at furthest node on separatePath
+							# 	self.nodes = self.adoptTree(qnewID,subtree)
+							# 	costToGoal, goalID = self.minGoalID()
+							# 	solpath_ID = self.retracePathFromTo(goalID)
+							# 	return self.nodes[solpath_ID, 0:2], solpath_ID
 
 		return None		
