@@ -16,7 +16,7 @@ obstacles.append(Obstacle('circle',[4, 6, 1], [1,-.5]))
 epsilon = 1.0 #near goal tolerance
 
 # Iterate
-N = 50 #number of iterations
+N = 250 #number of iterations
 for i in range(0,N):
 	
 	# random motion
