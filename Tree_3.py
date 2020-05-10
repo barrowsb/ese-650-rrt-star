@@ -48,7 +48,8 @@ class Tree(object):
 		while parentID != rootID:
 			path_ID = np.append(path_ID, [parentID])
 			parentID = int(self.nodes[parentID,3])
-		path_ID = np.append(path_ID, [rootID])	
+		if rootID != -1:
+			path_ID = np.append(path_ID, [rootID])	
 		return np.flipud(path_ID)
 
 	def collisionFree(self, node):
