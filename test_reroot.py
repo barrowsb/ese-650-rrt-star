@@ -30,25 +30,25 @@ def showtree(tree,path,title):
 # original tree
 tree = Tree.Tree([0,0],[10,10],[],-15,-15,15,15)
 tree.nodes = np.array(
-	  [[ 0. ,  0. ,  0. , -1. ],
-       [ 0. ,  2. ,  2. ,  0. ],
-       [ 2. ,  1. ,  2.5,  0. ],
-       [ 0. ,  4. ,  4. ,  1. ],
-       [ 4. ,  2. ,  5. ,  2. ],
+	  [[ 0. ,  2. ,  2. ,  4. ],
+       [ 2. ,  1. ,  2.5,  4. ],
+       [ 0. ,  4. ,  4. ,  0. ],
+       [ 4. ,  2. ,  5. ,  1. ],
+       [ 0. ,  0. ,  0. , -1. ],
        [ 4. ,  4. ,  6.5,  7. ],
-       [ 2. ,  3. ,  3.5,  2. ],
-       [ 3. ,  3. ,  5. ,  2. ],
-       [-1. ,  2. ,  3. ,  1. ],
+       [ 2. ,  3. ,  3.5,  1. ],
+       [ 3. ,  3. ,  5. ,  1. ],
+       [-1. ,  2. ,  3. ,  0. ],
        [ 3. ,  4. ,  6. ,  7. ]])
-tree.goalIDs = [3,5,9]
-solnpathIDs = [0,2,7,5]
+tree.goalIDs = [2,5,9]
+solnpathIDs = [4,1,7,5]
+# NEWROOT (in range [0,9])
+newroot = 1
 
 # empty tree object for trimmed tree
 trimmed = Tree.Tree([0,0],[10,10],[],-15,-15,15,15)
 subpathIDs = []
 
-# NEWROOT (in range [0,9])
-newroot = 7
 
 # trim tree (change which line is commented to test return structure)
 trimmed.nodes,subpathIDs,trimmed.goalIDs = tree.rerootAtID(newroot,tree=tree.nodes,pathIDs=solnpathIDs,goalIDs=tree.goalIDs)
@@ -74,13 +74,13 @@ print(subpathIDs)
 print('goals')
 print(trimmed.goalIDs)
 
-# Test selectBranch()
-sbpathIDs = tree.selectBranch(newroot,solnpathIDs)
-showtree(tree,sbpathIDs,'selectBranch()')
-print('===SELECTBRANCH()===')
-print('tree')
-print(tree.nodes)
-print('path')
-print(sbpathIDs)
-print('goals')
-print(tree.goalIDs)
+# # Test selectBranch()
+# sbpathIDs = tree.selectBranch(newroot,solnpathIDs)
+# showtree(tree,sbpathIDs,'selectBranch()')
+# print('===SELECTBRANCH()===')
+# print('tree')
+# print(tree.nodes)
+# print('path')
+# print(sbpathIDs)
+# print('goals')
+# print(tree.goalIDs)
