@@ -511,13 +511,13 @@ class Tree(object):
 							#ifpathNode is not orphanRoot, reroot
 							if self.orphanedTree[idx, -1] != -1:
 								subtree = self.rerootAtID(idx,subtree)
-							# print("SUBTREEE TO ADOPT:  ")
-							# print(subtree)
-							# 4. adopt subtree rooted at furthest node on separatePath at qnewID to main tree
-							self.nodes = self.adoptTree(qnewID,subtree)
-							costToGoal,goalID = self.minGoalID()
-							solpath_ID = self.retracePathFromTo(goalID)
-							return self.nodes[solpath_ID,0:2],solpath_ID
+								# print("SUBTREEE TO ADOPT:  ")
+								# print(subtree)
+								# 4. adopt subtree rooted at furthest node on separatePath at qnewID to main tree
+								self.nodes = self.adoptTree(qnewID,subtree)
+								costToGoal,goalID = self.minGoalID()
+								solpath_ID = self.retracePathFromTo(goalID)
+								return self.nodes[solpath_ID,0:2],solpath_ID
 
 							# if branchCost <= 1:
 							# 	subtree = np.copy(self.orphanedTree)
