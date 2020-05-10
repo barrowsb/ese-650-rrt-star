@@ -416,7 +416,7 @@ class Tree(object):
 					# print("SUBTREEE TO ADOPT:  ")
 					# print(subtree)
 					# 4. adopt subtree rooted at furthest node on separatePath
-					self.nodes = self.adoptTree(nayID, self.orphanedTree)
+					self.nodes = self.adoptTree(nayID, subtree)
 					return reconnectSuccess
 		return reconnectSuccess
 
