@@ -354,9 +354,15 @@ class Tree(object):
 		return self.temp_tree
 	
 	def validPath(self, solPathID):
+		solPathID = np.array(solPathID)
 		#returns pathID relative to orphanRoot, and the orphaned tree
 		#1. Find in-collision nodes
-		mask = [not self.collisionFree(self.nodes[i, 0:2]) for i in solPathID]
+		mask = [not self.collisionFree(self.nodes[i, 0:2]) for i in solPathID] #node wise
+		if not(np.any(mask) == True): #assert that solpath is in collision
+			# use branch-wise mask
+			mask2 = [not self.isValidBranch(self.nodes[i-1, 0:2], self.nodes[i,0:2], np.linalg.norm(self.nodes[i-1, 0:2]- self.nodes[i,0:2])) for i in solPathID[1:]]
+			mask = np.append(mask2, False) #append False to mask2
+		
 		maskShifted = np.append(np.array([0]), mask[:-1])
 		maskSum = mask + maskShifted
 		#2. Find all nodes between in-collision nodes as well
@@ -370,6 +376,7 @@ class Tree(object):
 		allDeadNodesID = np.argwhere([not self.collisionFree(self.nodes[i, 0:2]) for i in range(np.shape(self.nodes)[0])]).reshape(1, -1)[0]
 		deadNodesID = list(set(deadNodesID)| set(allDeadNodesID)) #union the 2 sets in case nodes inbetween in-collisions have to be removed as well
 		#3. Extract orphan subtree and separate_path to goal
+		print("EXTRACTING SUBTREE >>>>")
 		self.orphanedTree, self.separatePathID, orphanGoalIDs = self.rerootAtID(p_separateID, self.nodes, solPathID, self.goalIDs)
 		#4. Destroy in-collision lineages and update main tree
 		self.nodes = self.destroyLineage(deadNodesID, None,self.nodes)
