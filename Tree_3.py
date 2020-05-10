@@ -48,7 +48,8 @@ class Tree(object):
 		while parentID != rootID:
 			path_ID = np.append(path_ID, [parentID])
 			parentID = int(self.nodes[parentID,3])
-		path_ID = np.append(path_ID, [rootID])	
+		if rootID != -1:
+			path_ID = np.append(path_ID, [rootID])	
 		return np.flipud(path_ID)
 
 	def collisionFree(self, node):
@@ -352,11 +353,7 @@ class Tree(object):
 		deadNodesID = solPathID[mask]
 		
 		#3. Extract orphan subtree and separate_path to goal
-		bestGoalcost, bestGoalID = self.minGoalID()
-		#returns deadNodes for debuggin
-		#deadNodes =  self.nodes[deadNodesID, 0:2] 
-		self.separatePathID = self.retracePathFromTo(bestGoalID, p_separateID)
-		self.orphanedTree, self.separatePathID, orphanGoalIDs = self.rerootAtID(p_separateID, self.nodes, self.separatePathID, self.goalIDs)
+		self.orphanedTree, self.separatePathID, orphanGoalIDs = self.rerootAtID(p_separateID, self.nodes, solPathID, self.goalIDs)
 		#4. Destroy in-collision lineages and update main tree
 		self.nodes = self.destroyLineage(deadNodesID, None,self.nodes)
 		

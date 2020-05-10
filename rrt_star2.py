@@ -8,7 +8,7 @@ import matplotlib.patches as patches
 
 
 #########################################
-############# TASK SETUP ################
+############### Task Setup ##############
 #########################################
 start = [0,0]
 goal = [10,10]
@@ -18,11 +18,10 @@ obst2 = Obstacle('circle',[2,-2,1], [0,0], np.eye(2))
 obstacles = [obst1, obst2] #list of obstacles
 N = 2000 #number of iterations
 epsilon = 0.5 #near goal tolerance
-maxNumNodes = 1000 #upper limit on tree size 
 eta = 1.0 #max branch length
 gamma = 20.0 #param to set for radius of hyperball
 goalFound = False
-##########################################
+#########################################
 #for plotting
 iterations = []
 costs = []
@@ -30,7 +29,7 @@ path = [];
 
 
 #########################################
-######### Begin Iterations   ############
+########### Begin Iterations ############
 #########################################
 #1. Initialize Tree
 tree = Tree(start, goal, obstacles)
@@ -63,10 +62,6 @@ for i in range(N):
 		#7. Rewire tree within the hyperball vicinity
 		tree.rewire(qnewID,naysID,distances)
 
-		#8.Trim tree
-		if np.shape(tree.nodes)[0] > maxNumNodes:
-			tree.forcedRemove(qnewID, goal, goalFound)
-
 	if goalFound:
 		costToGoal, goalID = tree.minGoalID()
 		print("		cost to goal: {}".format(costToGoal))
@@ -74,17 +69,17 @@ for i in range(N):
 		costs.append(costToGoal)
 
 
-######################
-#####Draw tree #######
-######################
+#########################################
+############### Draw tree ###############
+#########################################
 def draw_edge(a, b, ax, color = 'blue'):
     path = Path([(a[0], a[1]), (b[0], b[1])], [Path.MOVETO, Path.LINETO])
     pathpatch = patches.PathPatch(path, facecolor='white', edgecolor= color)
     ax.add_patch(pathpatch)
 
-############################
-#####Plot final FN tree#####
-############################
+#########################################
+########## Plot final RRT* tree #########
+#########################################
 fig, ax = plt.subplots()
 plt.ylim((-15,15))
 plt.xlim((-15,15))
@@ -106,15 +101,11 @@ path = tree.nodes[path_ID, 0:2].reshape(-1,2)
 for i in range(np.shape(path)[0]-1):
 	draw_edge(path[i, :], path[i+1, :], ax, 'green')
 
-################
-### Plot cost ##
-################
+#########################################
+############### Plot cost ###############
+#########################################
 plt.figure(2)
 plt.title('Cost to reach goal vs Number of Iterations')
 plt.plot(iterations, costs)
 
 plt.show()
-
-
-
-
