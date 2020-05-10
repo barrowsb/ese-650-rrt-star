@@ -353,14 +353,16 @@ class Tree(object):
 		mask[leftSentinel: rightSentinel ] = [True for i in range(rightSentinel -leftSentinel)]
 		p_separateID = solPathID[np.where(maskSum == 1)[0][-1]]
 		deadNodesID = solPathID[mask]
-		
+
+		##### FIND all in-collision nodes 
+		allDeadNodesID = np.argwhere([not self.collisionFree(self.nodes[i, 0:2]) for i in range(np.shape(self.nodes)[0])]).reshape(1, -1)[0]
+		deadNodesID = list(set(deadNodesID)| set(allDeadNodesID)) #union the 2 sets in case nodes inbetween in-collisions have to be removed as well
 		#3. Extract orphan subtree and separate_path to goal
 		self.orphanedTree, self.separatePathID, orphanGoalIDs = self.rerootAtID(p_separateID, self.nodes, solPathID, self.goalIDs)
 		#4. Destroy in-collision lineages and update main tree
 		self.nodes = self.destroyLineage(deadNodesID, None,self.nodes)
-		
 
-		return self.separatePathID, self.orphanedTree #, deadNodes
+		return self.separatePathID, self.orphanedTree
 
 	def adoptTree(self, parentNodeID, orphanedTree):
 		#args: parentNodeID== id of connection node, orphanedTree == mx4 mat
