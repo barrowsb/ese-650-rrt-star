@@ -40,14 +40,14 @@ tree.nodes = np.array(
        [ 3. ,  3. ,  5. ,  1. ],
        [-1. ,  2. ,  3. ,  0. ],
        [ 3. ,  4. ,  6. ,  7. ]])
-tree.goalIDs = [2,5,9]
-solnpathIDs = [4,1,7,5]
+tree.goalIDs = np.array([2,5,9])
+solnpathIDs = np.array([4,1,7,5])
 # NEWROOT (in range [0,9])
 newroot = 1
 
 # empty tree object for trimmed tree
 trimmed = Tree.Tree([0,0],[10,10],[],-15,-15,15,15)
-subpathIDs = []
+subpathIDs = np.empty(0)
 
 
 # trim tree (change which line is commented to test return structure)
@@ -58,15 +58,15 @@ trimmed.nodes,subpathIDs,trimmed.goalIDs = tree.rerootAtID(newroot,tree=tree.nod
 
 # show results
 showtree(tree,solnpathIDs,'original')
-showtree(trimmed,subpathIDs,'rerooted')
-print('===ORIGINAL===')
+showtree(trimmed,subpathIDs,'rerooted @ '+str(newroot))
+print('====ORIGINAL====')
 print('tree')
 print(tree.nodes)
 print('path')
 print(solnpathIDs)
 print('goals')
 print(tree.goalIDs)
-print('===REROOTED===')
+print('===REROOTED@'+str(newroot)+'===')
 print('tree')
 print(trimmed.nodes)
 print('path')
