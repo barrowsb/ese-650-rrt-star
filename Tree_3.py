@@ -259,14 +259,13 @@ class Tree(object):
 		self.temp_tree = np.copy(tree)
 		# recursively strip lineage starting with root node
 		papaIDs = tree[:,-1]
-		rootID = np.where(papaIDs==-1)[0][0]
-		self.recursivelyStrip(newrootID,papaIDs,rootID)
+		self.recursivelyStrip(newrootID,papaIDs,np.where(papaIDs==-1))
+		# update parentIDs
 		strippedToNodeID = np.cumsum(np.isnan(self.temp_tree[:,-1]))
 		for ID in range(self.temp_tree.shape[0]):
 			parentID = self.temp_tree[ID,-1]
-			if not np.isnan(ID) and not np.isnan(parentID):
+			if not np.isnan(parentID):
 				self.temp_tree[ID,-1] -= strippedToNodeID[int(parentID)]
-		self.temp_tree[newrootID,-1] = -1
 		# delete nodes before newroot (where parentID==None)
 		removeIDs = np.argwhere(np.isnan(self.temp_tree[:,-1]))
 		self.temp_tree = np.delete(self.temp_tree,removeIDs,axis=0)
