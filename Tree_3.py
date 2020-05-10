@@ -14,7 +14,7 @@ class Tree(object):
 		self.update_q = [] # for cost propagation
 		self.resolution = 0.0001 # Resolution for obstacle check along an edge
 		self.orphanedTree = np.array([0,0,0,0]).reshape(1,4)
-		self.separatePath = np.array([]) # orphaned self
+		self.separatePathID = np.array([]) # IDs along path to goal in the orphaned tree
 		self.pcurID = 0 # ID of current node (initialized to rootID)
 		self.xmin, self.ymin, self.xmax, self.ymax = xmin, ymin, xmax, ymax
 		self.goal = goal
@@ -131,7 +131,7 @@ class Tree(object):
 		minCostID = np.argmin(costsToGoal)
 		return costsToGoal[minCostID], self.goalIDs[minCostID]
 
-	def chooseParent(self, new_node,neighbour_indices,distances):
+	def chooseParent(self,new_node,neighbour_indices,distances):
 		#choosing Best Parent
 		nayID = neighbour_indices[0]
 		parent_index = nayID
@@ -152,7 +152,7 @@ class Tree(object):
 
 	# Rewiring the tree nodes within the hyperball after a new node has been added to the tree. 
 	# The new node becomes the parent of the rewired nodes
-	def rewire(self, new_nodeID,neighbour_indices,distances):
+	def rewire(self,new_nodeID,neighbour_indices,distances):
 		distance_to_neighbours = distances[neighbour_indices] #branch costs to neighbor
 		new_costs = distance_to_neighbours + self.nodes[new_nodeID,2]
 		for i in range(neighbour_indices.shape[0]):
@@ -435,7 +435,7 @@ class Tree(object):
 		return reconnectSuccess
 
 
-	def regrow(self, maxNumNodes = 6000, epsilon = 0.5, eta = 1.0, gamma = 20.0):
+	def regrow(self,maxNumNodes = 6000,epsilon = 0.5,eta = 1.0,gamma = 20.0):
 		#exhaust: if true, finish all N iterations before returning solPath
 		print("Begin Regrow...")
 		goalFound = False
@@ -445,19 +445,19 @@ class Tree(object):
 			qrand = utils.sampleUniform(self.xmin, self.ymin, self.xmax, self.ymax)
 			#3. Find nearest node to qrand
 			qnear, qnearID = self.getNearest(qrand)
-			qnew = utils.steer(eta,qnear, qrand)
+			qnew = utils.steer(eta,qnear,qrand)
 		 
-			if self.isValidBranch(qnear, qnew, np.linalg.norm(qnear-qnew)):
+			if self.isValidBranch(qnear,qnew,np.linalg.norm(qnear - qnew)):
 				#4. Find nearest neighbors within hyperball
 				n = np.shape(self.nodes)[0] #number of nodes in self
-				radius = min(eta, gamma*np.sqrt(np.log(n)/n))
-				distances, NNids = self.getNN(qnew, radius) 
+				radius = min(eta,gamma * np.sqrt(np.log(n) / n))
+				distances,NNids = self.getNN(qnew,radius) 
 				#distances are branch costs from every node to qnew
 				
 				#5. Choose qnew's best parent and insert qnew
 				naysID = np.append(np.array([qnearID]),NNids)
-				qparentID, qnewCost = self.chooseParent(qnew, naysID, distances)	
-				qnewID = self.addEdge(int(qparentID), qnew, qnewCost)	
+				qparentID,qnewCost = self.chooseParent(qnew,naysID,distances)	
+				qnewID = self.addEdge(int(qparentID),qnew,qnewCost)	
 				
 				#6. If qnew is near goal, store its id
 				if np.linalg.norm(qnew - self.goal) < epsilon:
@@ -469,18 +469,18 @@ class Tree(object):
 
 				#8.Trim tree
 				if np.shape(self.nodes)[0] > maxNumNodes:
-					self.forcedRemove(qnewID, self.goal, goalFound)
+					self.forcedRemove(qnewID,self.goal,goalFound)
 
 				if goalFound:
-					costToGoal, goalID = self.minGoalID()
+					costToGoal,goalID = self.minGoalID()
 					solpath_ID = self.retracePathFromTo(goalID)
-					return self.nodes[solpath_ID, 0:2], solpath_ID
+					return self.nodes[solpath_ID,0:2],solpath_ID
 					# print("		cost to goal: {}".format(costToGoal))
 					# iterations.append(i)
 					# costs.append(costToGoal)
 
 				else:
-					separatePathID = np.flip(separatePathID)
+					separatePathID = np.flip(self.separatePathID)
 					for idx in separatePathID:
 						pathNode = self.orphanedTree[idx,0:2]
 						branchCost = np.linalg.norm(pathNode - qnew)
@@ -488,36 +488,38 @@ class Tree(object):
 							goalFound = True
 
 							if branchCost <= 1:
-								subtree = self.orphanedTree
+								subtree = np.copy(self.orphanedTree)
 								#ifpathNode is not orphanRoot, reroot
 								if self.orphanedTree[idx, -1] != -1:
-									subtree = self.rerootAtID(idx, subtree)
+									subtree = self.rerootAtID(idx,subtree)
 								# print("SUBTREEE TO ADOPT:  ")
 								# print(subtree)
 								# 4. adopt subtree rooted at furthest node on separatePath at qnewID to main tree
-								self.nodes = self.adoptTree(qnewID, subtree)
-								costToGoal, goalID = self.minGoalID()
+								self.nodes = self.adoptTree(qnewID,subtree)
+								costToGoal,goalID = self.minGoalID()
 								solpath_ID = self.retracePathFromTo(goalID)
-								return self.nodes[solpath_ID, 0:2], solpath_ID
+								return self.nodes[solpath_ID,0:2],solpath_ID
 
 							else:
 								while branchCost > 1:
 									qnear = np.copy(qnew)
+									# Sampling a new point at a distance of eta from qnew
+									# along the line connecting qnew and pathNode
 									qnew = utils.steer(eta,qnear,pathNode)
 									# Not checking for validity since if path from qnew to PathNode is valid
 									# Then path from steered node to qnew will also be valid
 									cost = np.linalg.norm(qnew - qnear) + self.nodes[qnewID,2]
-									qnewID = self.addEdge(int(qnewID), qnew, cost)
+									qnewID = self.addEdge(int(qnewID),qnew,cost)
 									branchCost = np.linalg.norm(pathNode - qnew)
 									pass
-								subtree = self.orphanedTree
+								subtree = np.copy(self.orphanedTree)
 								#ifpathNode is not orphanRoot, reroot
 								if self.orphanedTree[idx, -1] != -1:
-									subtree = self.rerootAtID(idx, self.orphanedTree)
+									subtree = self.rerootAtID(idx,subtree)
 								# print("SUBTREEE TO ADOPT:  ")
 								# print(subtree)
 								# 4. adopt subtree rooted at furthest node on separatePath
-								self.nodes = self.adoptTree(qnewID, self.orphanedTree)
+								self.nodes = self.adoptTree(qnewID,subtree)
 								costToGoal, goalID = self.minGoalID()
 								solpath_ID = self.retracePathFromTo(goalID)
 								return self.nodes[solpath_ID, 0:2], solpath_ID
