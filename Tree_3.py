@@ -258,7 +258,8 @@ class Tree(object):
 		# save copy of tree as self.temp_tree to allow recursion
 		self.temp_tree = np.copy(tree)
 		# recursively strip lineage starting with root node
-		self.recursivelyStrip(newrootID,tree[:,-1])
+		papaIDs = tree[:,-1]
+		self.recursivelyStrip(newrootID,papaIDs,np.where(papaIDs==-1))
 		# update parentIDs
 		strippedToNodeID = np.cumsum(np.isnan(self.temp_tree[:,-1]))
 		for ID in range(self.temp_tree.shape[0]):
@@ -291,7 +292,7 @@ class Tree(object):
 			return out_tree,rem_goalIDs
 		return out_tree
 	
-	def recursivelyStrip(self,newrootID,parentIDs,nodeID=0):
+	def recursivelyStrip(self,newrootID,parentIDs,nodeID):
 		# Strip this node
 		self.temp_tree[nodeID,-1] = None
 		# Find all children
