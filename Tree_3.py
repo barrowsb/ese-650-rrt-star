@@ -21,6 +21,7 @@ class Tree(object):
 		self.eta = 1.0
 		self.gamma = 20.0
 		self.temp_tree = np.array([0,0,0,-1]).reshape(1,4)
+		self.epsilon = 0.5
 
 	
 	def addEdge(self, parentID, child, cost):
