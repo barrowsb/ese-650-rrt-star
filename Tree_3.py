@@ -277,11 +277,15 @@ class Tree(object):
 		if not pathIDs is None:
 			returnpath = True
 			sub_pathIDs = [int(ID)-strippedToNodeID[int(ID)] for ID in pathIDs]
-			sub_pathIDs = np.array(sub_pathIDs)[np.greater_equal(sub_pathIDs,0,dtype=int)].tolist()
+			#sub_pathIDs = np.array(sub_pathIDs)[np.greater_equal(sub_pathIDs,0,dtype=int)]
+			shiftedRootID = np.where(out_tree[:,-1]==-1)[0]
+			splitIDs = np.where(sub_pathIDs==shiftedRootID)[0]
+			sub_pathIDs = np.split(sub_pathIDs,splitIDs)[-1].tolist()
 		# shift remaining subset of goalIDs
 		returngoal = False
 		if not goalIDs is None:
 			returngoal = True
+			# TODO: this is not working yet
 			rem_goalIDs = [int(ID)-strippedToNodeID[int(ID)] for ID in goalIDs]
 			rem_goalIDs = np.array(rem_goalIDs)[np.greater_equal(rem_goalIDs,1,dtype=int)].tolist()
 		# Intelligent return
