@@ -255,11 +255,14 @@ class Tree(object):
 		return np.logical_not(self.collisionFree(path_list))
 
 	def rerootAtID(self,newrootID,tree,pathIDs=None,goalIDs=None):
+		# check if root
+		papaIDs = tree[:,-1]
+		rootID = np.where(papaIDs==-1)[0][0]
+		if newrootID == rootID:
+			raise ValueError('This is already the root node, dummy')
 		# save copy of tree as self.temp_tree to allow recursion
 		self.temp_tree = np.copy(tree)
 		# recursively strip lineage starting with root node
-		papaIDs = tree[:,-1]
-		rootID = np.where(papaIDs==-1)[0][0]
 		self.recursivelyStrip(newrootID,papaIDs,rootID)
 		strippedToNodeID = np.cumsum(np.isnan(self.temp_tree[:,-1]))
 		for ID in range(self.temp_tree.shape[0]):
@@ -280,7 +283,10 @@ class Tree(object):
 			q = q[ ~np.isnan(q)]
 			pathIDs = np.delete(pathIDs, q, axis = 0)
 			sub_pathIDs = [int(ID)-strippedToNodeID[int(ID)] for ID in pathIDs]
-			sub_pathIDs = np.array(sub_pathIDs)[np.greater_equal(sub_pathIDs,0,dtype=int)]
+			try:
+				sub_pathIDs = np.array(sub_pathIDs)[np.greater_equal(sub_pathIDs,0,dtype=int)]
+			except:
+				sub_pathIDs = np.empty(0)
 		# shift remaining subset of goalIDs
 		returngoal = False
 		if not goalIDs is None:
@@ -289,7 +295,10 @@ class Tree(object):
 			q = q[ ~np.isnan(q)]
 			goalIDs =  np.delete(goalIDs,q, axis = 0)
 			rem_goalIDs = [int(ID)-strippedToNodeID[int(ID)] for ID in goalIDs]
-			rem_goalIDs = np.array(rem_goalIDs)[np.greater_equal(rem_goalIDs,1,dtype=int)]
+			try:
+				rem_goalIDs = np.array(rem_goalIDs)[np.greater_equal(rem_goalIDs,1,dtype=int)]
+			except:
+				rem_goalIDs = np.empty(0)
 			# Intelligent return
 		if returnpath and returngoal:
 			return out_tree,sub_pathIDs,rem_goalIDs
