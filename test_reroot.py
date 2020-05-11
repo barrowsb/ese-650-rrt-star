@@ -1,12 +1,25 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import Tree_3 as Tree
+import io
+import cv2
 
-# visualization
+# function which returns an image as numpy array from figure
+def get_img_from_fig(fig, dpi=180):
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=dpi)
+    buf.seek(0)
+    img_arr = np.frombuffer(buf.getvalue(), dtype=np.uint8)
+    buf.close()
+    img = cv2.imdecode(img_arr, 1)
+    # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    return img
+
+# function which returns figure containing tree visualization
 def showtree(tree,path,title):
 	fig,ax = plt.subplots()
-	ax.set_xlim(-2,5)
-	ax.set_ylim(-2,5)
+	ax.set_xlim(-3,5)
+	ax.set_ylim(-3,5)
 	ax.set_aspect('equal', adjustable='box')
 	for ID,node in enumerate(tree.nodes):
 		if ID in tree.goalIDs:
@@ -24,8 +37,7 @@ def showtree(tree,path,title):
 			plt.plot([tree.nodes[ID,0],tree.nodes[parentID,0]],
 			   [tree.nodes[ID,1],tree.nodes[parentID,1]],c=c)
 	plt.title(title + ' (area=cost)')
-	plt.legend()
-	plt.show()
+	return fig
 
 # original tree
 tree = Tree.Tree([0,0],[10,10],[],-15,-15,15,15)
@@ -57,8 +69,8 @@ trimmed.nodes,subpathIDs,trimmed.goalIDs = tree.rerootAtID(newroot,tree=tree.nod
 # trimmed.nodes = tree.rerootAtID(newroot,tree=tree.nodes)
 
 # show results
-showtree(tree,solnpathIDs,'original')
-showtree(trimmed,subpathIDs,'rerooted @ '+str(newroot))
+origfig = showtree(tree,solnpathIDs,'original')
+trimmedfig = showtree(trimmed,subpathIDs,'rerooted @ '+str(newroot))
 print('====ORIGINAL====')
 print('tree')
 print(tree.nodes)
@@ -74,13 +86,23 @@ print(subpathIDs)
 print('goals')
 print(trimmed.goalIDs)
 
-# # Test selectBranch()
-# sbpathIDs = tree.selectBranch(newroot,solnpathIDs)
-# showtree(tree,sbpathIDs,'selectBranch()')
-# print('===SELECTBRANCH()===')
-# print('tree')
-# print(tree.nodes)
-# print('path')
-# print(sbpathIDs)
-# print('goals')
-# print(tree.goalIDs)
+# Test selectBranch()
+sbpathIDs = tree.selectBranch(newroot,solnpathIDs)
+sbfig = showtree(tree,sbpathIDs,'selectBranch()')
+print('===SELECTBRANCH()===')
+print('tree')
+print(tree.nodes)
+print('path')
+print(sbpathIDs)
+print('goals')
+print(tree.goalIDs)
+
+# you can get a high-resolution image as numpy array!!
+origarray = get_img_from_fig(origfig)
+trimmedarray = get_img_from_fig(trimmedfig)
+sbarray = get_img_from_fig(sbfig)
+cv2.imshow('original',origarray)
+cv2.imshow('rerooted',trimmedarray)
+cv2.imshow('selectBranch',sbarray)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
