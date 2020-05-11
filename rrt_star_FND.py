@@ -78,9 +78,10 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 		separatePathID, orphanedTree = tree.validPath(solPathID)
 		separatePath = orphanedTree[separatePathID, 0:2].reshape(-1,2)
 		#.11-20 Try to reconnect main with orphanedTree
-		reconnected = tree.reconnect(separatePathID)
+		reconnected, solPathIDreconnect = tree.reconnect(separatePathID)
 
 		if reconnected:
+			solPathID = solPathIDreconnect
 			print('\n')
 			print("				RECONNECT SUCCESSFUL !		")
 			print('\n')

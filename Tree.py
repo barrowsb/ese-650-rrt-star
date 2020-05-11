@@ -365,7 +365,7 @@ class Tree(object):
 		if not(np.any(mask) == True): #assert that solpath is in collision
 			# use branch-wise mask
 			mask2 = [not self.isValidBranch(self.nodes[i-1, 0:2], self.nodes[i,0:2], np.linalg.norm(self.nodes[i-1, 0:2]- self.nodes[i,0:2])) for i in solPathID[1:]]
-			mask = np.append(mask2, False) #append False to mask2
+			mask = np.append(mask2, True) #append True to mask2
 		
 		maskShifted = np.append(np.array([0]), mask[:-1])
 		maskSum = mask + maskShifted
@@ -418,6 +418,7 @@ class Tree(object):
 		return fullTree
 	
 	def reconnect(self, separatePathID):
+		print("RECONNECTINGG >>>>><<<<<<")
 		#returns 2 booleans: 1 indicates whether a path to goal already exists, 1 whether reconnect succeeds
 		reconnectSuccess  = False
 		# separatePathID = np.flip(separatePathID)
@@ -426,6 +427,7 @@ class Tree(object):
 		# for idx in range(np.shape(separatePathID)[0]):
 			#1.center a ball on path node starting from goal
 			n = np.shape(self.nodes)[0]
+			# radius = 5.0
 			radius = min(self.eta, self.gamma*np.sqrt(np.log(n)/n))
 			pathNode = self.orphanedTree[idx, 0:2]
 			# pathNode = separatePathID[idx, :]
@@ -433,7 +435,7 @@ class Tree(object):
 			# print("pathNode: {}".format(pathNode))
 			distances, NNids = self.getNN(pathNode, radius) 
 			#2. search for possible connection from neightbor node 
-			for nayID in np.flip(NNids):
+			for nayID in NNids:
 				# print("nayid: {}".format(nayID))
 				branchCost = distances[nayID]
 				#3. if connection is valid, reroot orpahned tree and let main tree adopt it
@@ -442,15 +444,21 @@ class Tree(object):
 				if self.isValidBranch(nay, pathNode, branchCost):
 					reconnectSuccess = True
 					subtree = self.orphanedTree
+
 					#ifpathNode is not orphanRoot, reroot
 					if self.orphanedTree[idx, -1] != -1:
+						# print("rerooting....")
+						# print("			orphaned tree: {}".format(self.orphanedTree))
+						# print("			orphan reroot id: {}".format(idx))
 						subtree = self.rerootAtID(idx, self.orphanedTree)
 					# print("SUBTREEE TO ADOPT:  ")
 					# print(subtree)
 					# 4. adopt subtree rooted at furthest node on separatePath
 					self.nodes = self.adoptTree(nayID, subtree)
-					return reconnectSuccess
-		return reconnectSuccess
+					print("*****Adoption via Reconnection Successful!******")
+					costToGoal,goalID = self.minGoalID()
+					return reconnectSuccess, self.retracePathFromTo(goalID)
+		return reconnectSuccess, None
 
 
 	def regrow(self,maxNumNodes = 6000,epsilon = 0.5,eta = 1.0,gamma = 20.0):
