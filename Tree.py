@@ -73,7 +73,8 @@ class Tree(object):
 		self.goalIDs = np.append(self.goalIDs, int(goalID))
 	
 	def updateObtacles(self):
-		pass	
+		for obst in self.obstacles:
+			obst.moveObstacle()		
 	
 ####################################################################################################################################
 	
@@ -526,3 +527,8 @@ class Tree(object):
 							return self.nodes[solpath_ID,0:2],solpath_ID
 		
 		return None
+
+	def nextSolNode(self, solPathID):
+		#update pcur to the next sol node and return shortened solpathID
+		self.pcurID = solPathID[1]
+		return solPathID[1:]

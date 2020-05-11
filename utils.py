@@ -52,6 +52,13 @@ def plotEnv(tree, goal, start, ax):
 	S = patches.Circle((start[0], start[1]), 0.5, facecolor = 'pink' )
 	drawShape(G, ax)
 	drawShape(S, ax)
-def saveSnapShot(figure):
-	pass
+
+def saveImFromFig(fig, dpi= 180):
+	buf = io.BytesIO()
+	fig.savefig(buf, format = "png", dpi = dpi)
+	buf.seek(0)
+	img_arr = np.frombuffer(buf.getvalue(), dtype = np.uint8)
+	buf.close()
+	img = cv2.imdecode(img_arr,1)
+	return img
 ######################################################################################
