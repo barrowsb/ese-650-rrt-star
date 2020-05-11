@@ -348,11 +348,12 @@ class Tree(object):
 				self.goalIDs = np.delete(self.goalIDs,np.argwhere(self.goalIDs == removeID))
 			#adjust parentIDs
 			parents = self.temp_tree[:, 3]
+			parents[np.isnan(parents)] = -1000
 			self.temp_tree[np.where(parents > removeID), 3]= self.temp_tree[np.where(parents > removeID), 3]-1
 			#adjust removeIDs
 			removeIDs[np.where(removeIDs> removeID)] = removeIDs[np.where(removeIDs> removeID)] - 1
 			# #adjust goalIDs		
-			# self.goalIDs[np.where(self.goalIDs > removeID)]= self.goalIDs[np.where(self.goalIDs > removeID)]-1
+			self.goalIDs[np.where(self.goalIDs > removeID)]= self.goalIDs[np.where(self.goalIDs > removeID)]-1
 
 		return self.temp_tree
 	
@@ -503,7 +504,6 @@ class Tree(object):
 					# radius = 1.0
 					poss_connectionIDs = separatePathID[dist <= radius]
 					dist = dist[dist <= radius]
-
 					
 					for i,idx in enumerate(poss_connectionIDs):
 						print("ATTEMPTING TO ADOPT ORPHANED TREE IN REGROW >>>>")
