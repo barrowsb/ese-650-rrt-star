@@ -80,12 +80,16 @@ class Obstacle(object):
 
 		return np.logical_not(obs_check)
 
-	def toPatch(self, color = 'blue'):
+	def toPatch(self, color = [0.1,0.2,0.7]):
 		#returns patch object for plotting
 		if self.kind == 'rect':
-			return patches.Rectangle((self.position[0], self.position[1]), self.width, self.height, ec='k', facecolor = color)
+			return patches.Rectangle((self.position[0], self.position[1]), \
+							self.width, self.height, \
+								ec='k', lw=1.5, facecolor=color)
 
-		return patches.Circle((self.position[0], self.position[1]), self.radius, ec='k', facecolor = color )
+		return patches.Circle((self.position[0], self.position[1]), \
+						self.radius, \
+							ec='k', lw=1.5, facecolor=color)
 
 	def moveObstacle(self,dt=1):
 		#updates dynamics and returns next timestep position
