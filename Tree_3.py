@@ -339,8 +339,7 @@ class Tree(object):
 			self.recursivelyStrip(babyID,tree[:, -1], ancesID)
 		#2. delete nodes 
 		removeIDs = np.argwhere(np.isnan(self.temp_tree[:,-1]))
-		# print(removeIDs)
-		#4. update parentID and possibly goalID
+		#3. update parentID and possibly goalID
 		for removeID in removeIDs:
 			self.temp_tree  = np.delete(self.temp_tree , removeID, axis = 0)
 			if removeID in self.goalIDs:
