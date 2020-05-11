@@ -33,6 +33,15 @@ goalFound = False
 # path = [];
 #########################################
 
+#########################################
+# Defining video codecs and frame rate
+fourcc = cv.VideoWriter_fourcc(*'XVID')
+fps = 30
+# Initializing a VideoWriter object
+width = 864
+height = 1152
+video = cv.VideoWriter('./Output.avi',fourcc,fps,(width,height))
+
 
 #########################################
 ########### Begin Iterations ############
@@ -55,8 +64,10 @@ utils.drawTree(tree.nodes, ax, 'grey')
 utils.drawPath(solPath, ax)
 utils.plotEnv(tree, goal,start, ax)
 im = utils.saveImFromFig(fig)
+# Writing the image to the video file
+video.write(im)
 cv.imshow('frame',im)
-cv.waitKey(1000)
+cv.waitKey(500)
 plt.close()
 ####################
 ####################
@@ -76,6 +87,8 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 	utils.drawPath(solPath, ax)
 	utils.plotEnv(tree, goal,start, ax)
 	im = utils.saveImFromFig(fig)
+	# Writing the image to the video file
+	video.write(im)
 	cv.imshow('frame',im)
 	cv.waitKey(500)
 	plt.close()
@@ -121,4 +134,7 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 
 
 
-plt.show()
+# plt.show()
+
+# Release VideoWriter object
+video.release()
