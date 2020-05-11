@@ -59,7 +59,7 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 	utils.drawTree(tree.nodes, ax, 'grey')
 	utils.drawPath(solPath, ax)
 	utils.plotEnv(tree, goal,start, ax)
-	im = utils.saveImFromFig()
+	im = utils.saveImFromFig(fig)
 	# cv2.imwrite("image_{}".format(i), im) 
 	#6. Obstacle Updates
 	# tree.updateObstacles()

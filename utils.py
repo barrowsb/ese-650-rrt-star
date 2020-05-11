@@ -3,6 +3,8 @@ import random
 import matplotlib.pyplot as plt
 from matplotlib.path import Path
 import matplotlib.patches as patches
+import io
+import cv2
 
 def sampleUniform(xmin, ymin, xmax, ymax):
 	return np.array([np.random.uniform(xmin, xmax), np.random.uniform(ymin, ymax) ])

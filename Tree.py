@@ -72,7 +72,7 @@ class Tree(object):
 	def addGoalID(self, goalID):
 		self.goalIDs = np.append(self.goalIDs, int(goalID))
 	
-	def updateObtacles(self):
+	def updateObstacles(self):
 		for obst in self.obstacles:
 			obst.moveObstacle()		
 	
