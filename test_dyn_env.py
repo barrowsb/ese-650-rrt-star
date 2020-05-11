@@ -18,8 +18,8 @@ if windows:
 	obstacles.append(Obstacle('rect',[-4, -4, 4, 4 ], [1,1],np.zeros((2,2))))
 	obstacles.append(Obstacle('rect',[0, -4, 4, 4 ], [1,1],np.zeros((2,2))))
 else:
-	obstacles.append(Obstacle('rect',[4, -2, 4, 4 ], [-1,0]))
-	obstacles.append(Obstacle('rect',[-10, -12, 5, 2 ], [-1,-1]))
+	obstacles.append(Obstacle('rect',[4, 4, 4, 4 ], [-1,-1], np.zeros((2,2))))
+	obstacles.append(Obstacle('rect',[-10, -1, 2, 5 ], [1,0]))
 	obstacles.append(Obstacle('circle',[-5, 5, 3], [1,-1]))
 	obstacles.append(Obstacle('circle',[6.5, -7, 2], [0,.5]))
 	obstacles.append(Obstacle('circle',[4, 6, 1], [1,-.5]))

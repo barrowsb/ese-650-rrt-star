@@ -162,23 +162,27 @@ class Obstacle(object):
 		return vel,rebound
 
 	def checkGoalRebound(self,new,vel,rebound):
+		goal = np.array([self.goal_x,self.goal_y])
 		if self.kind == 'rect':
-			if ( new[0] + self.width > self.goal_x - self.goal_r and \
-			        new[0] < self.goal_x + self.goal_r ) and \
-					( new[1] + self.height > self.goal_y - self.goal_r and \
-					new[1] < self.goal_y + self.goal_r ):
+			center = new + np.array([self.width/2,self.height/2])
+			diff = np.abs(center - goal)
+			if ( diff[0] < self.goal_r + self.width/2 ) and \
+					( new[1] + self.height > self.goal_y and \
+					new[1] < self.goal_y ):
 				vel *= np.array([-1,1])
 				rebound = True
 				#print('goal: x')
-			if ( new[1] + self.height > self.goal_y - self.goal_r and \
-			        new[1] < self.goal_y + self.goal_r ) and \
-					( new[0] + self.width > self.goal_x - self.goal_r and \
-					new[0] < self.goal_x + self.goal_r ):
+			elif ( diff[1] < self.goal_r + self.height/2 ) and \
+					( new[0] + self.width > self.goal_x and \
+					new[0] < self.goal_x ):
 				vel *= np.array([1,-1])
 				rebound = True
 				#print('goal: y')
+			elif ( np.linalg.norm(diff) < self.goal_r + np.linalg.norm([self.width/2,self.height/2]) ):
+				vel *= np.array([-1,-1])
+				rebound = True
+				#print('goal: xy')
 		else: # self.kind=='circle'
-			goal = np.array([self.goal_x,self.goal_y])
 			dist = np.linalg.norm(new - goal)
 			if dist < (self.radius + self.goal_r):
 				#vel *= self.roundBounce(new,goal,dist,vel)
@@ -188,34 +192,38 @@ class Obstacle(object):
 		return vel,rebound
 	
 	def checkRobotRebound(self,x,y,new,vel,rebound):
+		robot = np.array([x,y])
 		if self.kind == 'rect':
-			if ( new[0] + self.width > x - self.robot_r and \
-			        new[0] < x + self.robot_r ) and \
-					( new[1] + self.height > y - self.robot_r and \
-					new[1] < y + self.robot_r ):
+			center = new + np.array([self.width/2,self.height/2])
+			diff = np.abs(center - robot)
+			if ( diff[0] < self.robot_r + self.width/2 ) and \
+					( new[1] + self.height > y and \
+					new[1] < y ):
 				vel *= np.array([-1,1])
 				rebound = True
 				#print('robot: x')
-			if ( new[1] + self.height > y - self.robot_r and \
-			        new[1] < y + self.robot_r ) and \
-					( new[0] + self.width > x - self.robot_r and \
-					new[0] < x + self.robot_r ):
+			elif ( diff[1] < self.robot_r + self.height/2 ) and \
+					( new[0] + self.width > x and \
+					new[0] < x ):
 				vel *= np.array([1,-1])
 				rebound = True
 				#print('robot: y')
+			elif ( np.linalg.norm(diff) < self.robot_r + np.linalg.norm([self.width/2,self.height/2]) ):
+				vel *= np.array([-1,-1])
+				rebound = True
+				#print('robot: xy')
 		else: # self.kind=='circle'
-			goal = np.array([x,y])
-			dist = np.linalg.norm(new - goal)
+			dist = np.linalg.norm(new - robot)
 			if dist < (self.radius + self.robot_r):
 				# gave up on roundBounce in favor of simple velocity reflection
-				#vel *= self.roundBounce(new,goal,dist,vel)
+				#vel *= self.roundBounce(new,robot,dist,vel)
 				vel *= np.array([-1,-1])
 				rebound = True
 				#print('robot: r')
 		return vel,rebound
 
-# 	def roundBounce(self,new,goal,dist,vel):
-# 		 collisionDir = (goal-new)/dist
+# 	def roundBounce(self,new,bouncer,dist,vel):
+# 		 collisionDir = (bouncer-new)/dist
 # 		 vel *= collisionDir
 # 		 vel /= np.linalg.norm(vel)
 # 		 return vel
