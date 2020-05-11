@@ -1,6 +1,8 @@
 import numpy as np
 import random
-
+import matplotlib.pyplot as plt
+from matplotlib.path import Path
+import matplotlib.patches as patches
 
 def sampleUniform(xmin, ymin, xmax, ymax):
 	return np.array([np.random.uniform(xmin, xmax), np.random.uniform(ymin, ymax) ])
@@ -21,3 +23,27 @@ def steer(eta,qnear, qrand):
 	branchLength = min(eta,dist)
 	qdir = branchLength * (qrand - qnear)/dist
 	return qnear + qdir
+
+######################################################################################
+##############################
+###### DRAWING METHODS #######
+##############################
+def draw_edge(a, b, ax, color = 'blue'):
+    path = Path([(a[0], a[1]), (b[0], b[1])], [Path.MOVETO, Path.LINETO])
+    pathpatch = patches.PathPatch(path, facecolor='white', edgecolor= color)
+    ax.add_patch(pathpatch)
+def drawTree(mat, ax, color = 'black'):
+	#mat: nx4 matrix
+	for i in range(np.shape(mat)[0]):
+		if mat[i, 3] != -1:
+			parentID = int(mat[i, 3])
+			draw_edge(mat[i, 0:2], mat[parentID, 0:2], ax, color)
+def drawShape(patch, ax):
+	ax.add_patch(patch)
+def drawPath(path, ax, color = 'green'):
+	for i in range(np.shape(path)[0]-1):
+		draw_edge(path[i], path[i+1], ax, color)
+
+def saveSnapShot(figure):
+	pass
+######################################################################################
