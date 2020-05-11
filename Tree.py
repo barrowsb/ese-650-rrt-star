@@ -5,7 +5,7 @@ import utils
 
 class Tree(object):
 	def __init__(self, start, goal, obstacles, xmin,ymin,xmax, ymax):
-		self.nodes = np.array([0,0,0,-1]).reshape(1,4)
+		self.nodes = np.array([start[0],start[1],0,-1]).reshape(1,4)
 		#4th column of self.nodes == parentID of root node is None
 		#3rd column of self.nodes == costs to get to each node from root		
 		self.obstacles = obstacles # a list of Obstacle Objects

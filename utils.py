@@ -43,7 +43,15 @@ def drawShape(patch, ax):
 def drawPath(path, ax, color = 'green'):
 	for i in range(np.shape(path)[0]-1):
 		draw_edge(path[i], path[i+1], ax, color)
-
+def plotEnv(tree, goal, start, ax):
+	#draw obstacles
+	for obs in tree.obstacles:
+		drawShape(obs.toPatch('blue'), ax)
+	#draw start and goal
+	G = patches.Circle((goal[0], goal[1]), 0.5, facecolor = 'orange' )
+	S = patches.Circle((start[0], start[1]), 0.5, facecolor = 'pink' )
+	drawShape(G, ax)
+	drawShape(S, ax)
 def saveSnapShot(figure):
 	pass
 ######################################################################################
