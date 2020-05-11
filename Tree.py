@@ -74,7 +74,7 @@ class Tree(object):
 	
 	def updateObstacles(self):
 		for obst in self.obstacles:
-			obst.moveObstacle()		
+			obst.moveObstacle(self.nodes[self.pcurID])
 	
 ####################################################################################################################################
 	
