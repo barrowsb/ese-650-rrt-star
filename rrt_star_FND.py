@@ -14,8 +14,8 @@ import cv2 as cv
 start = [-5,-5]
 goal = [10,10]
 xmin, ymin, xmax, ymax = -15,-15,15,15 #grid world borders
-obst1 = Obstacle('rect',[2, 2, 2,3], [-0.8,-0.5], 5*np.eye(2))
-obst2 = Obstacle('circle',[0,9,2], [-0.5,0.5], 5*np.eye(2))
+obst1 = Obstacle('rect',[2, 2, 2,3], [-0.8,-0.5], np.eye(2))
+obst2 = Obstacle('circle',[0,9,2], [-0.5,0.5], np.eye(2))
 obst3 = Obstacle('rect', [8,-4,1,4], [0,0], np.eye(2))
 obst4 = Obstacle('rect', [-1,-2,7,1], [0,0], np.eye(2))
 
