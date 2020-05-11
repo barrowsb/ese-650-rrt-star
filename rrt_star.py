@@ -1,6 +1,6 @@
 import numpy as np
 from Obstacle import Obstacle
-from Tree_2 import Tree
+from Tree import Tree
 import utils
 import matplotlib.pyplot as plt
 from matplotlib.path import Path
@@ -32,7 +32,7 @@ path = [];
 ########### Begin Iterations ############
 #########################################
 #1. Initialize Tree
-tree = Tree(start, goal, obstacles)
+tree = Tree(start, goal, obstacles, xmin, ymin, xmax, ymax)
 
 for i in range(N):
 	print("iter {} || number of nodes: {}".format(i, tree.nodes.shape[0]))
@@ -96,7 +96,7 @@ for i in range(np.shape(tree.nodes)[0]):
 		parentID = int(tree.nodes[i, 3])
 		draw_edge(tree.nodes[i, 0:2], tree.nodes[parentID, 0:2], ax)
 
-path_ID = tree.retracePathFrom(goalID)
+path_ID = tree.retracePathFromTo(goalID)
 path = tree.nodes[path_ID, 0:2].reshape(-1,2)
 for i in range(np.shape(path)[0]-1):
 	draw_edge(path[i, :], path[i+1, :], ax, 'green')
