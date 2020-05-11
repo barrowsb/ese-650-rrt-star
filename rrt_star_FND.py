@@ -1,22 +1,25 @@
 import numpy as np
 from Obstacle import Obstacle
-from Tree import Tree
+from Tree_3 import Tree
 import utils
 import matplotlib.pyplot as plt
 from matplotlib.path import Path
 import matplotlib.patches as patches
+import cv2
 
 
 #########################################
 ############### Task Setup ##############
 #########################################
-start = [0,0]
+start = [-5,-5]
 goal = [10,10]
 xmin, ymin, xmax, ymax = -15,-15,15,15 #grid world borders
-obst1 = Obstacle('rect',[3, 3, 3,3], [0,0], np.eye(2))
-obst2 = Obstacle('circle',[2,5,2], [0,0], np.eye(2))
+obst1 = Obstacle('rect',[2, 2, 2,3], [-0.8,-0.5], 5*np.eye(2))
+obst2 = Obstacle('circle',[0,9,2], [-0.5,0.5], 5*np.eye(2))
 obst3 = Obstacle('rect', [8,-4,1,4], [0,0], np.eye(2))
-obstacles = [obst1, obst2, obst3] #list of obstacles
+obst4 = Obstacle('rect', [-1,-2,7,1], [0,0], np.eye(2))
+
+obstacles = [obst1, obst2, obst3, obst4] #list of obstacles
 N = 2000 #number of iterations
 epsilon = 0.5 #near goal tolerance
 maxNumNodes = 1000 #upper limit on tree size 
@@ -28,10 +31,6 @@ goalFound = False
 # iterations = []
 # costs = []
 # path = [];
-fig, ax = plt.subplots()
-plt.ylim((-15,15))
-plt.xlim((-15,15))
-ax.set_aspect('equal', adjustable='box')
 #########################################
 
 
@@ -46,15 +45,27 @@ tree = Tree(start, goal, obstacles, xmin,ymin,xmax, ymax)
 solPath, solPathID = tree.initGrowth()
 ####################
 #4. Init movement()-->> update pcurID 
-tree.pcurID = solPathID[1]
+solPathID = tree.nextSolNode(solPathID)
 ####################
-#5. Begin replanning loop (and move obstacles?), while pcur is not goal, do...
-# while np.linagl.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
-for __ in range(1):
+#5. Begin replanning loop, while pcur is not goal, do...
+while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
+# for i in range(20):
+	fig, ax = plt.subplots()
+	plt.ylim((-15,15))
+	plt.xlim((-15,15))
+	ax.set_aspect('equal', adjustable='box')
+	pcur = tree.nodes[tree.pcurID, 0:2]
+	utils.drawShape(patches.Circle((pcur[0], pcur[1]), 0.5, facecolor = 'red' ), ax)
+	utils.drawTree(tree.nodes, ax, 'grey')
+	utils.drawPath(solPath, ax)
+	utils.plotEnv(tree, goal,start, ax)
+	im = utils.saveImFromFig()
+	# cv2.imwrite("image_{}".format(i), im) 
 	#6. Obstacle Updates
 	# tree.updateObstacles()
-	tree.obstacles[0].position = np.array([ 7, 2 ])
-	#7. if solPath breaks
+	tree.updateObstacles()
+	# tree.obstacles[0].position = np.array([ 7, 2 ])
+	#7. if solPath breaks, replan
 	if tree.detectCollision(solPath):
 		#8. Stop Movement
 		#9. select remaining valid branches
@@ -73,7 +84,7 @@ for __ in range(1):
 			print('\n')
 			print("				RECONNECT SUCCESSFUL !		")
 			print('\n')
-			utils.drawTree(tree.nodes, ax, 'blue')
+			utils.drawTree(tree.nodes, ax, 'red')
 		
 		else:
 			print('\n')
@@ -85,17 +96,10 @@ for __ in range(1):
 			print('\n')
 			print("				REGROW SUCCESSFUL !		")
 			print('\n')
-			utils.drawTree(tree.nodes, ax, 'grey')
-		
-		utils.drawTree(orphanedTree, ax, 'purple')
-		utils.drawPath(separatePath, ax, 'green')
+	######## END REPLANNING Block #######
+	#26. Move to next sol node
+	solPathID = tree.nextSolNode(solPathID)
 
-#### DRAW ENVIRONMENT ######
-for obs in tree.obstacles:
-	utils.drawShape(obs.toPatch(), ax)
-G = Obstacle('circle', [goal[0], goal[1], 0.3], [0,0], 0*np.eye(2))
-S = Obstacle('circle', [start[0], start[1], 0.3], [0,0], 0*np.eye(2))
-utils.drawShape(G.toPatch('red'), ax)
-utils.drawShape(S.toPatch('pink'), ax)
+
 
 plt.show()
