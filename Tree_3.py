@@ -3,7 +3,6 @@ from Obstacle import Obstacle
 import random
 import utils
 
-#RRT*FND
 class Tree(object):
 	def __init__(self, start, goal, obstacles, xmin,ymin,xmax, ymax):
 		self.nodes = np.array([0,0,0,-1]).reshape(1,4)
@@ -75,11 +74,13 @@ class Tree(object):
 	
 	def updateObtacles(self):
 		pass	
+	
 ####################################################################################################################################
 	
 	######################################
-	###### RRT* and RRT*FD Methods #######
+	###### RRT* and RRT*FN Methods #######
 	######################################
+	
 	def getNN(self, new_node, radius):
 		#returns nodeIDs of neighbors within hyperball 
 		temp = self.nodes[:,0:2] - new_node
@@ -176,9 +177,11 @@ class Tree(object):
 					self.update_q.extend(next_indices)
 
 ####################################################################################################################################
+
 	####################################
 	######### RRT* FND Methods #########
 	####################################
+	
 	def initGrowth(self, exhaust = False, N = 10000, maxNumNodes = 6000, epsilon = 0.5, eta = 1.0, gamma = 20.0):
 		#exhaust: if true, finish all N iterations before returning solPath
 		#initial tree growth. Returns solution path and its ID sequence
@@ -230,7 +233,6 @@ class Tree(object):
 			return self.nodes[solpath_ID, 0:2], solpath_ID
 
 		return None
-
 	
 	def detectCollision(self, solpath):
 		# path_list = []
@@ -411,7 +413,6 @@ class Tree(object):
 		self.nodes = fullTree
 		normOfDiffs  = np.linalg.norm(self.nodes[:, 0:2] - self.goal, axis =1)
 		self.goalIDs = np.argwhere(normOfDiffs < self.epsilon)
-
 		
 		return fullTree
 	
@@ -523,5 +524,5 @@ class Tree(object):
 							costToGoal,goalID = self.minGoalID()
 							solpath_ID = self.retracePathFromTo(goalID)
 							return self.nodes[solpath_ID,0:2],solpath_ID
-
-		return None		
+		
+		return None
