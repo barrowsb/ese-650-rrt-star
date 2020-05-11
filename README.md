@@ -4,7 +4,7 @@
 ##### Spring 2020 Final Project
 
 ## Running our code
-The main classes are the *Tree()* class and the *Obstacle()* class, in *Tree.py* and *Obstacle.py* respectively. The *Tree()* class handles all tree operations included growth (sample, steering, connecting, rewiring), collision detection, cost propogation, forced deletion, branch removal, reroot, reconnect, and regrow. All methods required for obstacle-free RRT\*, RRT\*FN, and RRT\*FND are included here. The *Obstacle()* class handles the motion (random changes in velocity direction and rebounding), obstacle-level collision detection, and plotting.
+The main classes are the *Tree* class and the *Obstacle* class, in *Tree.py* and *Obstacle.py* respectively. The *Tree* class handles all tree operations including growth (sampling, steering, connecting, rewiring), collision detection, cost propogation, forced deletion, branch removal, rerooting, reconnecting, and regrowing. All methods required for obstacle-free RRT\*, RRT\*FN, and RRT\*FND are included here. The *Obstacle* class handles the motion of obstacles (random changes in direction and rebounding), obstacle-level collision detection, and plotting.
 
 The file *utils.py* contains various helper functions for sampling, steering, and plotting. All files in the "*/old/*" directory are deprecated versions and all files in the "*/test/*" directory were for validating *Tree()* and *Obstacle()* class methods.
 
