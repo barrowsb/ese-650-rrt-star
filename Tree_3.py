@@ -249,7 +249,7 @@ class Tree(object):
 		# Since it uses only a fixed number of points along all edges irrespective of edge length
 		############
 		num_points = 10000
-		path_list = np.linspace(solpath[0,-1],solpath[1:],num_points)
+		path_list = np.linspace(solpath[0:-1],solpath[1:],num_points)
 		path_list = path_list.reshape(-1,2)
 
 		# Returns True if a collision is detected
@@ -496,18 +496,19 @@ class Tree(object):
 
 				else:
 					separatePathID = np.flip(self.separatePathID)
-					normOfDiffs = np.linalg.norm(self.orphanedTree[separatePathID,0:2] - qnew, axis = 1)
+					dist = np.linalg.norm(self.orphanedTree[separatePathID,0:2] - qnew, axis = 1)
 					n = np.shape(self.nodes)[0] #number of nodes in self
 					radius = max(eta,gamma * np.sqrt(np.log(n) / n))
 					# radius = 1.0
-					poss_connectionIDs = separatePathID[normOfDiffs <= radius]
+					poss_connectionIDs = separatePathID[dist <= radius]
+					dist = dist[dist <= radius]
 
 					
 					for i,idx in enumerate(poss_connectionIDs):
 						print("ATTEMPTING TO ADOPT ORPHANED TREE IN REGROW >>>>")
 						pathNode = self.orphanedTree[idx,0:2]
-						# branchCost = dist[i]
-						branchCost = np.linalg.norm(pathNode - qnew)
+						branchCost = dist[i]
+						# branchCost = np.linalg.norm(pathNode - qnew)
 						if self.isValidBranch(pathNode,qnew,branchCost):
 							goalFound = True
 
