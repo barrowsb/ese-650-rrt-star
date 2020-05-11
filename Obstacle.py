@@ -3,7 +3,8 @@ import matplotlib.patches as patches
 
 class Obstacle(object):
 	
-	def __init__(self, kind, parameters, velMean, velCovar, borders=[-15,-15,15,15]):
+	def __init__(self, kind, parameters, velMean, \
+			  velCovar=np.eye(2)*0.02, borders=[-15,-15,15,15], speed=0.5):
 		#kind: string type. Either 'rect' or 'circle'
 		#parameters: for rect type: parameters= [x_min, y_min, width, height]
 		#for circle type: parameters = [x_centre, y_centre, radius]
@@ -16,7 +17,7 @@ class Obstacle(object):
 		self.params = parameters
 		self.velMean = velMean
 		self.velCovar = velCovar
-		self.speed = np.linalg.norm(velMean)
+		self.speed = speed
 		if kind == 'rect':
 			self.position = np.array([parameters[0], parameters[1]])
 			self.width = parameters[2]
@@ -79,12 +80,16 @@ class Obstacle(object):
 
 		return np.logical_not(obs_check)
 
-	def toPatch(self):
+	def toPatch(self, color = [0.1,0.2,0.7]):
 		#returns patch object for plotting
 		if self.kind == 'rect':
-			return patches.Rectangle((self.position[0], self.position[1]), self.width, self.height)
+			return patches.Rectangle((self.position[0], self.position[1]), \
+							self.width, self.height, \
+								ec='k', lw=1.5, facecolor=color)
 
-		return patches.Circle((self.position[0], self.position[1]), self.radius )
+		return patches.Circle((self.position[0], self.position[1]), \
+						self.radius, \
+							ec='k', lw=1.5, facecolor=color)
 
 	def moveObstacle(self,dt=1):
 		#updates dynamics and returns next timestep position
