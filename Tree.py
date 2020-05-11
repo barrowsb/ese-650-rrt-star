@@ -500,7 +500,7 @@ class Tree(object):
 					separatePathID = np.flip(self.separatePathID)
 					dist = np.linalg.norm(self.orphanedTree[separatePathID,0:2] - qnew, axis = 1)
 					n = np.shape(self.nodes)[0] #number of nodes in self
-					radius = max(eta,gamma * np.sqrt(np.log(n) / n))
+					radius = min(eta,gamma * np.sqrt(np.log(n) / n))
 					# radius = 1.0
 					poss_connectionIDs = separatePathID[dist <= radius]
 					dist = dist[dist <= radius]
