@@ -348,6 +348,9 @@ class Tree(object):
 				self.goalIDs = np.delete(self.goalIDs,np.argwhere(self.goalIDs == removeID))
 			#adjust parentIDs
 			parents = self.temp_tree[:, 3]
+			parents[np.isnan(parents)] = -1000
+			# print("parents: ",parents)
+			# print("removeID: ",removeID)
 			self.temp_tree[np.where(parents > removeID), 3]= self.temp_tree[np.where(parents > removeID), 3]-1
 			#adjust removeIDs
 			removeIDs[np.where(removeIDs> removeID)] = removeIDs[np.where(removeIDs> removeID)] - 1
