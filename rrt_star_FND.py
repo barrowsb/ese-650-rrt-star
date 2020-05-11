@@ -1,6 +1,6 @@
 import numpy as np
 from Obstacle import Obstacle
-from Tree_3 import Tree
+from Tree import Tree
 import utils
 import matplotlib.pyplot as plt
 from matplotlib.path import Path
