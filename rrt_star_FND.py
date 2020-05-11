@@ -5,7 +5,7 @@ import utils
 import matplotlib.pyplot as plt
 from matplotlib.path import Path
 import matplotlib.patches as patches
-import cv2
+import cv2 as cv
 
 
 #########################################
@@ -44,8 +44,24 @@ tree = Tree(start, goal, obstacles, xmin,ymin,xmax, ymax)
 #3. Get Solution Path
 solPath, solPathID = tree.initGrowth()
 ####################
+# Plot
+fig, ax = plt.subplots()
+plt.ylim((-15,15))
+plt.xlim((-15,15))
+ax.set_aspect('equal', adjustable='box')
+pcur = tree.nodes[tree.pcurID, 0:2]
+utils.drawShape(patches.Circle((pcur[0], pcur[1]), 0.5, facecolor = 'red' ), ax)
+utils.drawTree(tree.nodes, ax, 'grey')
+utils.drawPath(solPath, ax)
+utils.plotEnv(tree, goal,start, ax)
+im = utils.saveImFromFig(fig)
+cv.imshow('frame',im)
+cv.waitKey(1000)
+plt.close()
+####################
+####################
 #4. Init movement()-->> update pcurID 
-solPathID = tree.nextSolNode(solPathID)
+solPath,solPathID = tree.nextSolNode(solPath,solPathID)
 ####################
 #5. Begin replanning loop, while pcur is not goal, do...
 while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
@@ -60,6 +76,9 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 	utils.drawPath(solPath, ax)
 	utils.plotEnv(tree, goal,start, ax)
 	im = utils.saveImFromFig(fig)
+	cv.imshow('frame',im)
+	cv.waitKey(500)
+	plt.close()
 	# cv2.imwrite("image_{}".format(i), im) 
 	#6. Obstacle Updates
 	# tree.updateObstacles()
@@ -78,10 +97,9 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 		separatePathID, orphanedTree = tree.validPath(solPathID)
 		separatePath = orphanedTree[separatePathID, 0:2].reshape(-1,2)
 		#.11-20 Try to reconnect main with orphanedTree
-		reconnected, solPathIDreconnect = tree.reconnect(separatePathID)
+		reconnected,solPath,solPathID = tree.reconnect(separatePathID)
 
 		if reconnected:
-			solPathID = solPathIDreconnect
 			print('\n')
 			print("				RECONNECT SUCCESSFUL !		")
 			print('\n')
@@ -92,14 +110,14 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 			print("				RECONNECT FAILED!		")
 			print('\n')
 			#21. if reconnect fails, regrow tree
-			solPath, solPathID = tree.regrow()
+			solPath,solPathID = tree.regrow()
 
 			print('\n')
 			print("				REGROW SUCCESSFUL !		")
 			print('\n')
 	######## END REPLANNING Block #######
 	#26. Move to next sol node
-	solPathID = tree.nextSolNode(solPathID)
+	solPath,solPathID = tree.nextSolNode(solPath,solPathID)
 
 
 

@@ -30,9 +30,9 @@ def steer(eta,qnear, qrand):
 ##############################
 ###### DRAWING METHODS #######
 ##############################
-def draw_edge(a, b, ax, color = 'blue'):
+def draw_edge(a, b, ax, color = 'blue', width = 1):
     path = Path([(a[0], a[1]), (b[0], b[1])], [Path.MOVETO, Path.LINETO])
-    pathpatch = patches.PathPatch(path, facecolor='white', edgecolor= color)
+    pathpatch = patches.PathPatch(path, facecolor='white', edgecolor= color, linewidth = width)
     ax.add_patch(pathpatch)
 def drawTree(mat, ax, color = 'black'):
 	#mat: nx4 matrix
@@ -44,7 +44,7 @@ def drawShape(patch, ax):
 	ax.add_patch(patch)
 def drawPath(path, ax, color = 'green'):
 	for i in range(np.shape(path)[0]-1):
-		draw_edge(path[i], path[i+1], ax, color)
+		draw_edge(path[i], path[i+1], ax, color, 2)
 def plotEnv(tree, goal, start, ax):
 	#draw obstacles
 	for obs in tree.obstacles:

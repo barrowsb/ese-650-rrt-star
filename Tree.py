@@ -235,7 +235,7 @@ class Tree(object):
 
 		return None
 	
-	def detectCollision(self, solpath):
+	def detectCollision(self,solpath):
 		# path_list = []
 
 		# for i in range(solpath.shape[0] - 1):
@@ -418,7 +418,7 @@ class Tree(object):
 		return fullTree
 	
 	def reconnect(self, separatePathID):
-		print("RECONNECTINGG >>>>><<<<<<")
+		print("RECONNECTING >>>>><<<<<<")
 		#returns 2 booleans: 1 indicates whether a path to goal already exists, 1 whether reconnect succeeds
 		reconnectSuccess  = False
 		# separatePathID = np.flip(separatePathID)
@@ -457,8 +457,9 @@ class Tree(object):
 					self.nodes = self.adoptTree(nayID, subtree)
 					print("*****Adoption via Reconnection Successful!******")
 					costToGoal,goalID = self.minGoalID()
-					return reconnectSuccess, self.retracePathFromTo(goalID)
-		return reconnectSuccess, None
+					solpath_ID = self.retracePathFromTo(goalID)
+					return reconnectSuccess,self.nodes[solpath_ID,0:2],solpath_ID
+		return reconnectSuccess,None,None
 
 
 	def regrow(self,maxNumNodes = 6000,epsilon = 0.5,eta = 1.0,gamma = 20.0):
@@ -536,7 +537,7 @@ class Tree(object):
 		
 		return None
 
-	def nextSolNode(self, solPathID):
+	def nextSolNode(self,solPath,solPathID):
 		#update pcur to the next sol node and return shortened solpathID
 		self.pcurID = solPathID[1]
-		return solPathID[1:]
+		return solPath[1:],solPathID[1:]
