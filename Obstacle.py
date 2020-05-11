@@ -3,8 +3,8 @@ import matplotlib.patches as patches
 
 class Obstacle(object):
 	
-	def __init__(self, kind, parameters, velMean, \
-			  velCovar=np.eye(2)*0.02, borders=[-15,-15,15,15], speed=0.5):
+	def __init__(self,kind,parameters,velMean,velCovar=np.eye(2)*0.02,speed=0.5, \
+			  borders=[-15,-15,15,15], goalLoc = [10,10,0.5]):
 		#kind: string type. Either 'rect' or 'circle'
 		#parameters: for rect type: parameters= [x_min, y_min, width, height]
 		#for circle type: parameters = [x_centre, y_centre, radius]
@@ -30,7 +30,10 @@ class Obstacle(object):
 		self.ymin = borders[1]
 		self.xmax = borders[2]
 		self.ymax = borders[3]
-		self.robot_radius = 0.5
+		self.robot_r = 0.5
+		self.goal_x = goalLoc[0]
+		self.goal_y = goalLoc[1]
+		self.goal_r = goalLoc[2]
 
 	def isCollisionFree(self, x):
 		#returns a boolean indicating whether obstacle is in collision
@@ -54,8 +57,8 @@ class Obstacle(object):
 		# 		if np.linalg.norm(t-x) <= 0.85:
 		# 			return False
 
-		x_check = np.logical_and(x[:,0] >= self.position[0] - self.robot_radius,x[:,0] <= self.position[0] + self.width + self.robot_radius)
-		y_check = np.logical_and(x[:,1] >= self.position[1] - self.robot_radius,x[:,1] <= self.position[1] + self.height + self.robot_radius)
+		x_check = np.logical_and(x[:,0] >= self.position[0] - self.robot_r,x[:,0] <= self.position[0] + self.width + self.robot_r)
+		y_check = np.logical_and(x[:,1] >= self.position[1] - self.robot_r,x[:,1] <= self.position[1] + self.height + self.robot_r)
 		check = np.logical_and(x_check,y_check)
 
 		# obs_check is true if there is a collision
@@ -73,7 +76,7 @@ class Obstacle(object):
 
 		temp = x - self.position
 		dist = np.linalg.norm(temp,axis = 1)
-		check = dist <= self.radius + self.robot_radius
+		check = dist <= self.radius + self.robot_r
 
 		# obs_check is true if there is a collision
 		obs_check = check.any()
@@ -91,7 +94,7 @@ class Obstacle(object):
 						self.radius, \
 							ec='k', lw=1.5, facecolor=color)
 
-	def moveObstacle(self,dt=1):
+	def moveObstacle(self,p_cur,dt=1):
 		#updates dynamics and returns next timestep position
 		# sample random velocity
 		vel = np.random.multivariate_normal(self.velMean, self.velCovar)
@@ -99,42 +102,120 @@ class Obstacle(object):
 		if not norm==0:
 			vel = self.speed*(vel/norm)
 		# check for rebound and update obstacle position
-		vel,new = self.checkRebound(vel,dt)
+		vel,new = self.doRebound(p_cur[0],p_cur[1],vel,dt)
 		# update and return output
 		self.velMean = vel
 		self.position = new
 		self.history.append(new)
 		return new
 	
-	def checkRebound(self,vel,dt):
+	def doRebound(self,x,y,vel,dt):
+		# temporary new position
 		rebound = False
 		new = self.position + vel*dt
+		# check for border rebound and udpate vel if necessary
+		vel,rebound = self.checkBorderRebound(new,vel,rebound)
+		# check for goal rebound and update vel if necessary
+		vel,rebound = self.checkGoalRebound(new,vel,rebound)
+		# check for robot rebound and update vel if necessary
+		vel,rebound = self.checkRobotRebound(x,y,new,vel,rebound)
+		# if rebound necessary, compute position again
+		if rebound:
+			new = self.position + vel*dt
+		return vel,new
+	
+	def checkBorderRebound(self,new,vel,rebound):
 		if self.kind == 'rect':
 			if new[0] + self.width > self.xmax:
 				vel *= np.array([-1,1])
 				rebound = True
+				#print('right')
 			elif new[0] < self.xmin:
 				vel *= np.array([-1,1])
 				rebound = True
+				#print('left')
 			if new[1] + self.height > self.ymax:
 				vel *= np.array([1,-1])
 				rebound = True
+				#print('top')
 			elif new[1] < self.ymin:
 				vel *= np.array([1,-1])
 				rebound = True
+				#print('bottom')
 		else: # self.kind=='circle'
 			if new[0] > self.xmax - self.radius:
 				vel *= np.array([-1,1])
 				rebound = True
+				#print('right')
 			elif new[0] < self.xmin + self.radius:
 				vel *= np.array([-1,1])
 				rebound = True
+				#print('left')
 			if new[1] > self.ymax - self.radius:
 				vel *= np.array([1,-1])
 				rebound = True
+				#print('top')
 			elif new[1] < self.ymin + self.radius:
 				vel *= np.array([1,-1])
 				rebound = True
-		if rebound:
-			new = self.position + vel*dt
-		return vel,new
+				#print('bottom')
+		return vel,rebound
+
+	def checkGoalRebound(self,new,vel,rebound):
+		if self.kind == 'rect':
+			if ( new[0] + self.width > self.goal_x - self.goal_r and \
+			        new[0] < self.goal_x + self.goal_r ) and \
+					( new[1] + self.height > self.goal_y - self.goal_r and \
+					new[1] < self.goal_y + self.goal_r ):
+				vel *= np.array([-1,1])
+				rebound = True
+				#print('goal: x')
+			if ( new[1] + self.height > self.goal_y - self.goal_r and \
+			        new[1] < self.goal_y + self.goal_r ) and \
+					( new[0] + self.width > self.goal_x - self.goal_r and \
+					new[0] < self.goal_x + self.goal_r ):
+				vel *= np.array([1,-1])
+				rebound = True
+				#print('goal: y')
+		else: # self.kind=='circle'
+			goal = np.array([self.goal_x,self.goal_y])
+			dist = np.linalg.norm(new - goal)
+			if dist < (self.radius + self.goal_r):
+				#vel *= self.roundBounce(new,goal,dist,vel)
+				vel *= np.array([-1,-1])
+				rebound = True
+				#print('goal: r')
+		return vel,rebound
+	
+	def checkRobotRebound(self,x,y,new,vel,rebound):
+		if self.kind == 'rect':
+			if ( new[0] + self.width > x - self.robot_r and \
+			        new[0] < x + self.robot_r ) and \
+					( new[1] + self.height > y - self.robot_r and \
+					new[1] < y + self.robot_r ):
+				vel *= np.array([-1,1])
+				rebound = True
+				#print('robot: x')
+			if ( new[1] + self.height > y - self.robot_r and \
+			        new[1] < y + self.robot_r ) and \
+					( new[0] + self.width > x - self.robot_r and \
+					new[0] < x + self.robot_r ):
+				vel *= np.array([1,-1])
+				rebound = True
+				#print('robot: y')
+		else: # self.kind=='circle'
+			goal = np.array([x,y])
+			dist = np.linalg.norm(new - goal)
+			if dist < (self.radius + self.robot_r):
+				# gave up on roundBounce in favor of simple velocity reflection
+				#vel *= self.roundBounce(new,goal,dist,vel)
+				vel *= np.array([-1,-1])
+				rebound = True
+				#print('robot: r')
+		return vel,rebound
+
+# 	def roundBounce(self,new,goal,dist,vel):
+# 		 collisionDir = (goal-new)/dist
+# 		 vel *= collisionDir
+# 		 vel /= np.linalg.norm(vel)
+# 		 return vel
