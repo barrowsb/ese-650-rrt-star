@@ -13,17 +13,19 @@ import time
 #########################################
 ############### Task Setup ##############
 #########################################
-start = [-14,-14]
-goal = [14,14]
+start = [-12,-12]
+goal = [11,11]
 chaos = 0.05
 xmin, ymin, xmax, ymax = -15,-15,15,15 #grid world borders
-obst1 = Obstacle('rect',[-5, 5, 2,3], [-0.8,-0.5], chaos*np.eye(2))
-obst2 = Obstacle('circle',[3,9,2], [-0.5,0.5], chaos*np.eye(2))
-obst3 = Obstacle('rect', [5,-2,1,4], [0,0], chaos*np.eye(2))
-obst4 = Obstacle('rect', [-3,-3,7,1], [0,0], chaos*np.eye(2))
-obstacles = [obst1, obst2, obst3, obst4] #list of obstacles
+obst1 = Obstacle('rect',[-5, 5, 2,3], [0,0], chaos*np.eye(2), 1.5)
+obst2 = Obstacle('circle',[3,9,2], [0,0], chaos*np.eye(2), 1.5)
+obst3 = Obstacle('rect', [8,-5,1,6], [0,0], chaos*np.eye(2), 1.5)
+obst4 = Obstacle('rect', [-3,-3,7,1], [0,0], chaos*np.eye(2), 1.5)
+obst5 = Obstacle('circle', [-10,-6,2], [0,0], chaos*np.eye(2), 0.5)
+obst6 = Obstacle('rect', [-12,9,2,2], [0,0], chaos*np.eye(2), 0)
+obstacles = [obst1, obst2, obst3, obst4, obst5, obst6] #list of obstacles
 epsilon = 0.5 #near goal tolerance
-maxNumNodes = 1000 #upper limit on tree size 
+maxNumNodes = 3000 #upper limit on tree size 
 eta = 1.0 #max branch length
 gamma = 20.0 #param to set for radius of hyperball
 goalFound = False
@@ -100,8 +102,7 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 		print("********************************************************")
 
 		#9. select remaining valid branches
-		solPathID = tree.selectBranch(tree.pcurID, solPathID)
-		
+		solPathID = tree.selectBranch(tree.pcurID, solPathID)	
 		#10. Separate tree
 		separatePathID, orphanedTree = tree.validPath(solPathID)
 		separatePath = orphanedTree[separatePathID, 0:2].reshape(-1,2)
@@ -113,7 +114,7 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 			print('\n')
 			print("				RECONNECT SUCCESSFUL !		")
 			print('\n')
-			utils.drawTree(tree.nodes, ax, 'red')
+			# utils.drawTree(tree.nodes, ax, 'red')
 		
 		else:
 			print('\n')

@@ -131,6 +131,7 @@ class Tree(object):
 			return ntgID
 
 	def minGoalID(self):
+		self.goalIDs = self.goalIDs.astype(int)
 		costsToGoal = self.nodes[self.goalIDs, 2]
 		minCostID = np.argmin(costsToGoal)
 		return costsToGoal[minCostID], self.goalIDs[minCostID]
@@ -332,43 +333,55 @@ class Tree(object):
 		self.nodes,subpathIDs,self.goalIDs = self.rerootAtID(pcurID,tree=self.nodes,pathIDs=solnpathIDs,goalIDs=self.goalIDs)
 		return subpathIDs
 
-	def destroyLineage(self, ancestorIDs, babyID, tree):
+	def destroyLineage(self, ancestorIDs, tree):
 		#returns new tree with lineage(s) rooted at ancestorID(s) removed 
 		#remove all nodes in the lineage staring from ancestor down to(but not including) baby 
 		#args: tree== nx4 matrix
 		#1. Nan-mark nodes to be removed
+		rootID = np.argwhere(tree[:, -1] == -1)
 		self.temp_tree = np.copy(tree)
 		for ancesID in ancestorIDs:
-			self.recursivelyStrip(babyID,tree[:, -1], ancesID)
+			self.recursivelyStrip(rootID,tree[:, -1], ancesID)
 		#2. delete nodes 
-		removeIDs = np.argwhere(np.isnan(self.temp_tree[:,-1]))
-		#3. update parentID and possibly goalID
-		for removeID in removeIDs:
-			self.temp_tree  = np.delete(self.temp_tree , removeID, axis = 0)
-			if removeID in self.goalIDs:
-				#adjust goal ID
-				self.goalIDs = np.delete(self.goalIDs,np.argwhere(self.goalIDs == removeID))
-			#adjust parentIDs
-			parents = self.temp_tree[:, 3]
-			parents[np.isnan(parents)] = -1000
-			self.temp_tree[np.where(parents > removeID), 3]= self.temp_tree[np.where(parents > removeID), 3]-1
-			#adjust removeIDs
-			removeIDs[np.where(removeIDs> removeID)] = removeIDs[np.where(removeIDs> removeID)] - 1
-			# #adjust goalIDs		
-			self.goalIDs[np.where(self.goalIDs > removeID)]= self.goalIDs[np.where(self.goalIDs > removeID)]-1
+		
 
-		return self.temp_tree
+		strippedToNodeID = np.cumsum(np.isnan(self.temp_tree[:,-1]))
+		for ID in range(self.temp_tree.shape[0]):
+			parentID = self.temp_tree[ID,-1]
+			if not np.isnan(ID) and not np.isnan(parentID):
+				self.temp_tree[ID,-1] -= strippedToNodeID[int(parentID)]
+		self.temp_tree[rootID,-1] = -1
+		removeIDs = np.argwhere(np.isnan(self.temp_tree[:,-1]))
+		self.temp_tree = np.delete(self.temp_tree,removeIDs,axis=0)
+		out_tree = self.temp_tree
+		self.temp_tree = np.array([0,0,0,-1]).reshape(1,4)
+
+		#adjust goalIDs
+		q = np.array([np.argwhere(self.goalIDs == i)[0][0] if i in self.goalIDs else np.nan for i in removeIDs])
+		q = q[ ~np.isnan(q)]
+		self.goalIDs =  np.delete(self.goalIDs,q, axis = 0)
+		self.goalIDs  = np.array([int(int(ID)-strippedToNodeID[int(ID)]) for ID in self.goalIDs])
+
+		return out_tree
 	
 	def validPath(self, solPathID):
 		solPathID = np.array(solPathID)
 		#returns pathID relative to orphanRoot, and the orphaned tree
 		#1. Find in-collision nodes
-		mask = [not self.collisionFree(self.nodes[i, 0:2]) for i in solPathID] #node wise
-		if not(np.any(mask) == True): #assert that solpath is in collision
+		mask = np.logical_not([ self.collisionFree(self.nodes[i, 0:2]) for i in solPathID]) #node wise
+		if not(np.any(mask)): #assert that solpath is in collision
 			# use branch-wise mask
-			mask2 = [not self.isValidBranch(self.nodes[i-1, 0:2], self.nodes[i,0:2], np.linalg.norm(self.nodes[i-1, 0:2]- self.nodes[i,0:2])) for i in solPathID[1:]]
-			mask = np.append(mask2, True) #append True to mask2
+			solpath = self.nodes[solPathID, 0:2]
+			num_points = 10000
+			path_list = np.linspace(solpath[0:-1],solpath[1:],num_points)
+			path_list = path_list.reshape(-1,2)
+
+			mask2 = [not self.isValidBranch(self.nodes[solPathID[i], 0:2], self.nodes[solPathID[i+1],0:2], np.linalg.norm(self.nodes[solPathID[i], 0:2]- self.nodes[solPathID[i+1],0:2])) for i in range(solPathID[:-1].shape[0])]
+			mask2 = np.append(mask2, False)
+			mask = mask|mask2
 		
+		mask[0] = False
+
 		maskShifted = np.append(np.array([0]), mask[:-1])
 		maskSum = mask + maskShifted
 		#2. Find all nodes between in-collision nodes as well
@@ -380,12 +393,13 @@ class Tree(object):
 
 		##### FIND all in-collision nodes 
 		allDeadNodesID = np.argwhere([not self.collisionFree(self.nodes[i, 0:2]) for i in range(np.shape(self.nodes)[0])]).reshape(1, -1)[0]
+		allDeadNodesID = np.delete(allDeadNodesID, np.argwhere(allDeadNodesID == self.pcurID))
 		deadNodesID = list(set(deadNodesID)| set(allDeadNodesID)) #union the 2 sets in case nodes inbetween in-collisions have to be removed as well
 		#3. Extract orphan subtree and separate_path to goal
 		print("EXTRACTING SUBTREE >>>>")
 		self.orphanedTree, self.separatePathID, orphanGoalIDs = self.rerootAtID(p_separateID, self.nodes, solPathID, self.goalIDs)
 		#4. Destroy in-collision lineages and update main tree
-		self.nodes = self.destroyLineage(deadNodesID, None,self.nodes)
+		self.nodes = self.destroyLineage(deadNodesID,self.nodes)
 
 		return self.separatePathID, self.orphanedTree
 
@@ -415,7 +429,7 @@ class Tree(object):
 		#5. Recover goalIDs
 		self.nodes = fullTree
 		normOfDiffs  = np.linalg.norm(self.nodes[:, 0:2] - self.goal, axis =1)
-		self.goalIDs = np.argwhere(normOfDiffs < self.epsilon)
+		self.goalIDs = np.argwhere(normOfDiffs < self.epsilon).reshape(-1,)
 		
 		return fullTree
 	
@@ -429,7 +443,6 @@ class Tree(object):
 		# for idx in range(np.shape(separatePathID)[0]):
 			#1.center a ball on path node starting from goal
 			n = np.shape(self.nodes)[0]
-			# radius = 5.0
 			radius = min(self.eta, self.gamma*np.sqrt(np.log(n)/n))
 			pathNode = self.orphanedTree[idx, 0:2]
 			# pathNode = separatePathID[idx, :]
