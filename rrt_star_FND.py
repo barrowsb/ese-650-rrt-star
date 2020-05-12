@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.path import Path
 import matplotlib.patches as patches
 import cv2 as cv
-
+import imageio
 
 #########################################
 ############### Task Setup ##############
@@ -26,22 +26,10 @@ maxNumNodes = 1000 #upper limit on tree size
 eta = 1.0 #max branch length
 gamma = 20.0 #param to set for radius of hyperball
 goalFound = False
-#########################################
-#for plotting
-# iterations = []
-# costs = []
-# path = [];
-#########################################
 
 #########################################
-# Defining video codecs and frame rate
-fourcc = cv.VideoWriter_fourcc(*'XVID')
-fps = 30
-# Initializing a VideoWriter object
-width = 864
-height = 1152
-video = cv.VideoWriter('./Output.avi',fourcc,fps,(width,height))
-
+# Creating a list to store images at each frame
+images = []
 
 #########################################
 ########### Begin Iterations ############
@@ -49,9 +37,12 @@ video = cv.VideoWriter('./Output.avi',fourcc,fps,(width,height))
 #1. Initialize Tree and growth
 print("Initializing FN TREE.....")
 tree = Tree(start, goal, obstacles, xmin,ymin,xmax, ymax)
+
 #2. Set pcurID = 0; by default in Tree instantiation
+
 #3. Get Solution Path
-solPath, solPathID = tree.initGrowth()
+solPath, solPathID = tree.initGrowth(exhaust = True)
+
 ####################
 # Plot
 fig, ax = plt.subplots()
@@ -64,19 +55,20 @@ utils.drawTree(tree.nodes, ax, 'grey')
 utils.drawPath(solPath, ax)
 utils.plotEnv(tree, goal,start, ax)
 im = utils.saveImFromFig(fig)
-# Writing the image to the video file
-video.write(im)
 cv.imshow('frame',im)
-cv.waitKey(500)
+# Converting from BGR (OpenCV representation) to RGB (ImageIO representation)
+im = cv.cvtColor(im,cv.COLOR_BGR2RGB)
+# Appending to list of images
+images.append(im)
+cv.waitKey(100)
 plt.close()
 ####################
-####################
+
 #4. Init movement()-->> update pcurID 
 solPath,solPathID = tree.nextSolNode(solPath,solPathID)
-####################
+
 #5. Begin replanning loop, while pcur is not goal, do...
 while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
-# for i in range(20):
 	fig, ax = plt.subplots()
 	plt.ylim((-15,15))
 	plt.xlim((-15,15))
@@ -87,29 +79,33 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 	utils.drawPath(solPath, ax)
 	utils.plotEnv(tree, goal,start, ax)
 	im = utils.saveImFromFig(fig)
-	# Writing the image to the video file
-	video.write(im)
 	cv.imshow('frame',im)
-	cv.waitKey(500)
+	# Converting from BGR (OpenCV representation) to RGB (ImageIO representation)
+	im = cv.cvtColor(im,cv.COLOR_BGR2RGB)
+	# Appending to list of images
+	images.append(im)
+	cv.waitKey(100)
 	plt.close()
-	# cv2.imwrite("image_{}".format(i), im) 
+
 	#6. Obstacle Updates
-	# tree.updateObstacles()
 	tree.updateObstacles()
-	# tree.obstacles[0].position = np.array([ 7, 2 ])
+
 	#7. if solPath breaks, replan
 	if tree.detectCollision(solPath):
+
 		#8. Stop Movement
-		#9. select remaining valid branches
-		solPathID = tree.selectBranch(tree.pcurID, solPathID)
 		print("********************************************************")
 		print("********* Path Breaks, collision detected! *************")
 		print("********************************************************")
-		# break
+
+		#9. select remaining valid branches
+		solPathID = tree.selectBranch(tree.pcurID, solPathID)
+		
 		#10. Separate tree
 		separatePathID, orphanedTree = tree.validPath(solPathID)
 		separatePath = orphanedTree[separatePathID, 0:2].reshape(-1,2)
-		#.11-20 Try to reconnect main with orphanedTree
+
+		#11-20. Try to reconnect main with orphanedTree
 		reconnected,solPath,solPathID = tree.reconnect(separatePathID)
 
 		if reconnected:
@@ -122,19 +118,22 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 			print('\n')
 			print("				RECONNECT FAILED!		")
 			print('\n')
+
 			#21. if reconnect fails, regrow tree
 			solPath,solPathID = tree.regrow()
 
 			print('\n')
 			print("				REGROW SUCCESSFUL !		")
 			print('\n')
+
 	######## END REPLANNING Block #######
+
 	#26. Move to next sol node
 	solPath,solPathID = tree.nextSolNode(solPath,solPathID)
 
+# Closing the display window
+cv.destroyAllWindows()
 
-
-# plt.show()
-
-# Release VideoWriter object
-video.release()
+# Saving the list of images as a gif
+print("The results are saved as a GIF to Animation.gif")
+imageio.mimsave('Animation.gif',images,duration = 0.5)
