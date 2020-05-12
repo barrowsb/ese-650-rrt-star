@@ -14,9 +14,9 @@ import time
 ############### Task Setup ##############
 #########################################
 start = [-12,-12]
-goal = [12,12]
+goal = [12.,12.]
 epsilon = 0.5 #near goal tolerance
-goalLoc = goal.append(epsilon)
+goalLoc = [goal[0],goal[1],epsilon]
 chaos = 0.05
 xmin, ymin, xmax, ymax = -15,-15,15,15 #grid world borders
 obst1 = Obstacle('rect',[-5, 5, 2,3], [0,0], chaos*np.eye(2), 1.5, goalLoc = goalLoc)
