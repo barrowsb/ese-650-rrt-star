@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.path import Path
 import matplotlib.patches as patches
 import io
-import cv2
+import cv2 as cv
 
 def sampleUniform(xmin, ymin, xmax, ymax):
 	return np.array([np.random.uniform(xmin, xmax), np.random.uniform(ymin, ymax) ])
@@ -61,6 +61,6 @@ def saveImFromFig(fig, dpi= 180):
 	buf.seek(0)
 	img_arr = np.frombuffer(buf.getvalue(), dtype = np.uint8)
 	buf.close()
-	img = cv2.imdecode(img_arr,1)
+	img = cv.imdecode(img_arr,1)
 	return img
 ######################################################################################
