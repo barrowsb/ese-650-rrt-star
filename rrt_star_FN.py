@@ -28,7 +28,7 @@ epsilon = 0.5 #near goal tolerance
 eta = 1.0 #max branch length
 gamma = 20.0 #param to set for radius of hyperball
 goalFound = False
-maxNumNodes = 1000
+maxNumNodes = 3000
 #########################################
 #for plotting
 iterations = []
