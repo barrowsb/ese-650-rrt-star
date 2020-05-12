@@ -94,7 +94,7 @@ class Obstacle(object):
 						self.radius, \
 							ec='k', lw=1.5, facecolor=color)
 
-	def moveObstacle(self,p_cur,dt=1):
+	def moveObstacle(self,p_cur,dt):
 		#updates dynamics and returns next timestep position
 		# sample random velocity
 		vel = np.random.multivariate_normal(self.velMean, self.velCovar)
@@ -109,22 +109,28 @@ class Obstacle(object):
 		self.history.append(new)
 		return new
 	
-	def doRebound(self,x,y,vel,dt):
+	def doRebound(self,x,y,in_vel,dt):
 		# temporary new position
-		rebound = False
-		new = self.position + vel*dt
+		borderrebound = False
+		goalrebound = False
+		robotrebound = False
+		new = self.position + in_vel*dt
 		# check for border rebound and udpate vel if necessary
-		vel,rebound = self.checkBorderRebound(new,vel,rebound)
+		vel,borderrebound = self.checkBorderRebound(new,in_vel)
 		# check for goal rebound and update vel if necessary
-		vel,rebound = self.checkGoalRebound(new,vel,rebound)
+		vel,goalrebound = self.checkGoalRebound(new,in_vel)
 		# check for robot rebound and update vel if necessary
-		vel,rebound = self.checkRobotRebound(x,y,new,vel,rebound)
+		vel,robotrebound = self.checkRobotRebound(x,y,new,in_vel)
+		# if two rebounds happen, fix rebound
+		if (robotrebound or goalrebound) and borderrebound:
+			vel *= in_vel*np.array([0,0])
 		# if rebound necessary, compute position again
-		if rebound:
-			new = self.position + vel*dt
+		if borderrebound or goalrebound or robotrebound:
+			new = self.position + in_vel*dt
 		return vel,new
 	
-	def checkBorderRebound(self,new,vel,rebound):
+	def checkBorderRebound(self,new,vel):
+		rebound = False
 		if self.kind == 'rect':
 			if new[0] + self.width > self.xmax:
 				vel *= np.array([-1,1])
@@ -161,7 +167,8 @@ class Obstacle(object):
 				#print('bottom')
 		return vel,rebound
 
-	def checkGoalRebound(self,new,vel,rebound):
+	def checkGoalRebound(self,new,vel):
+		rebound = False
 		goal = np.array([self.goal_x,self.goal_y])
 		if self.kind == 'rect':
 			center = new + np.array([self.width/2,self.height/2])
@@ -191,7 +198,8 @@ class Obstacle(object):
 				#print('goal: r')
 		return vel,rebound
 	
-	def checkRobotRebound(self,x,y,new,vel,rebound):
+	def checkRobotRebound(self,x,y,new,vel):
+		rebound = False
 		robot = np.array([x,y])
 		if self.kind == 'rect':
 			center = new + np.array([self.width/2,self.height/2])

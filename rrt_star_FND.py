@@ -68,7 +68,7 @@ plt.close()
 ####################
 
 #4. Init movement()-->> update pcurID 
-solPath,solPathID = tree.nextSolNode(solPath,solPathID)
+solPath,solPathID,dt = tree.nextSolNode(solPath,solPathID)
 startTime = time.time()
 #5. Begin replanning loop, while pcur is not goal, do...
 while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
@@ -91,7 +91,7 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 	plt.close()
 
 	#6. Obstacle Updates
-	tree.updateObstacles()
+	tree.updateObstacles(dt)
 
 	#7. if solPath breaks, replan
 	if tree.detectCollision(solPath):
@@ -131,7 +131,7 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 	######## END REPLANNING Block #######
 
 	#26. Move to next sol node
-	solPath,solPathID = tree.nextSolNode(solPath,solPathID)
+	solPath,solPathID,dt = tree.nextSolNode(solPath,solPathID)
 
 print("Total Run Time: {} secs".format(time.time() -startTime))
 costToGoal, goalID = tree.minGoalID()
