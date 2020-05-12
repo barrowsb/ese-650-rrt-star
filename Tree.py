@@ -346,16 +346,16 @@ class Tree(object):
 		for removeID in removeIDs:
 			self.temp_tree  = np.delete(self.temp_tree , removeID, axis = 0)
 			if removeID in self.goalIDs:
-				#adjust goal ID
+				#delete goal ID
 				self.goalIDs = np.delete(self.goalIDs,np.argwhere(self.goalIDs == removeID))
+				#adjust goalIDs		
+				self.goalIDs[np.where(self.goalIDs > removeID)]= self.goalIDs[np.where(self.goalIDs > removeID)]-1
 			#adjust parentIDs
 			parents = self.temp_tree[:, 3]
 			parents[np.isnan(parents)] = -1000
 			self.temp_tree[np.where(parents > removeID), 3]= self.temp_tree[np.where(parents > removeID), 3]-1
 			#adjust removeIDs
-			removeIDs[np.where(removeIDs> removeID)] = removeIDs[np.where(removeIDs> removeID)] - 1
-			# #adjust goalIDs		
-			self.goalIDs[np.where(self.goalIDs > removeID)]= self.goalIDs[np.where(self.goalIDs > removeID)]-1
+			removeIDs[np.where(removeIDs> removeID)] = removeIDs[np.where(removeIDs> removeID)] - 1		
 
 		return self.temp_tree
 	
@@ -366,8 +366,9 @@ class Tree(object):
 		mask = [not self.collisionFree(self.nodes[i, 0:2]) for i in solPathID] #node wise
 		if not(np.any(mask) == True): #assert that solpath is in collision
 			# use branch-wise mask
-			mask2 = [not self.isValidBranch(self.nodes[i-1, 0:2], self.nodes[i,0:2], np.linalg.norm(self.nodes[i-1, 0:2]- self.nodes[i,0:2])) for i in solPathID[1:]]
-			mask = np.append(mask2, True) #append True to mask2
+			mask2 = [not self.isValidBranch(self.nodes[i, 0:2], self.nodes[i+1,0:2], np.linalg.norm(self.nodes[i, 0:2]- self.nodes[i+1,0:2])) for i in solPathID[:-1]]
+			mask2 = np.append(np.array([False]), mask2) #append True to mask2
+			mask = mask|mask2
 		
 		maskShifted = np.append(np.array([0]), mask[:-1])
 		maskSum = mask + maskShifted
@@ -429,7 +430,6 @@ class Tree(object):
 		# for idx in range(np.shape(separatePathID)[0]):
 			#1.center a ball on path node starting from goal
 			n = np.shape(self.nodes)[0]
-			# radius = 5.0
 			radius = min(self.eta, self.gamma*np.sqrt(np.log(n)/n))
 			pathNode = self.orphanedTree[idx, 0:2]
 			# pathNode = separatePathID[idx, :]
