@@ -21,4 +21,4 @@ The file *utils.py* contains various helper functions for sampling, steering, an
 
 All files in the *./old* directory are deprecated versions and all files in the *./test* directory were for validating *Tree()* and *Obstacle()* class methods. In order to run these test files, you must have a copy of Tree.py and Obstacle.py in the same working directory.
 
-**Example animations are included in the *./test* directory.**
+**Example animations are included in the *./results* directory.**
