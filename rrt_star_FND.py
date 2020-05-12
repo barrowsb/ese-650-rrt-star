@@ -12,13 +12,13 @@ import time
 #########################################
 ############### Task Setup ##############
 #########################################
-start = [-5,-5]
-goal = [10,10]
+start = [-14,-14]
+goal = [14,14]
 xmin, ymin, xmax, ymax = -15,-15,15,15 #grid world borders
-obst1 = Obstacle('rect',[2, 2, 2,3], [-0.8,-0.5], np.eye(2))
-obst2 = Obstacle('circle',[0,9,2], [-0.5,0.5], np.eye(2))
-obst3 = Obstacle('rect', [8,-4,1,4], [0,0], np.eye(2))
-obst4 = Obstacle('rect', [-1,-2,7,1], [0,0], np.eye(2))
+obst1 = Obstacle('rect',[-5, 5, 2,3], [-0.8,-0.5], np.eye(2))
+obst2 = Obstacle('circle',[3,9,2], [-0.5,0.5], np.eye(2))
+obst3 = Obstacle('rect', [5,-2,1,4], [0,0], np.eye(2))
+obst4 = Obstacle('rect', [-3,-3,7,1], [0,0], np.eye(2))
 
 obstacles = [obst1, obst2, obst3, obst4] #list of obstacles
 N = 2000 #number of iterations
@@ -141,5 +141,5 @@ plt.show()
 cv.destroyAllWindows()
 
 # Saving the list of images as a gif
-print("The results are saved as a GIF to Animation.gif")
-imageio.mimsave('Animation.gif',images,duration = 0.5)
+print("The results are saved as a GIF to Animation_rrt_star_FND.gif")
+imageio.mimsave('Animation_rrt_star_FND.gif',images,duration = 0.5)
