@@ -131,6 +131,7 @@ class Tree(object):
 			return ntgID
 
 	def minGoalID(self):
+		self.goalIDs = self.goalIDs.astype(int)
 		costsToGoal = self.nodes[self.goalIDs, 2]
 		minCostID = np.argmin(costsToGoal)
 		return costsToGoal[minCostID], self.goalIDs[minCostID]
@@ -368,19 +369,15 @@ class Tree(object):
 		#returns pathID relative to orphanRoot, and the orphaned tree
 		#1. Find in-collision nodes
 		mask = np.logical_not([ self.collisionFree(self.nodes[i, 0:2]) for i in solPathID]) #node wise
-		print("mask: {}".format(mask))
 		if not(np.any(mask)): #assert that solpath is in collision
 			# use branch-wise mask
-			# mask2 = [not self.isValidBranch(self.nodes[solPathID[idx], 0:2],  self.nodes[solPathID[idx+1], 0:2], np.linalg.norm(self.nodes[solPathID[idx], 0:2]- self.nodes[solPathID[idx+1], 0:2])) for idx in range(np.shape(solPathID[:-1])[0])]
-			# mask2 = np.append(mask2, np.array([False])) #append True to mask2
 			solpath = self.nodes[solPathID, 0:2]
 			num_points = 10000
 			path_list = np.linspace(solpath[0:-1],solpath[1:],num_points)
 			path_list = path_list.reshape(-1,2)
 
-		# Returns True if a collision is detected
-			mask2 = np.array([~self.collisionFree(path_list[i-5000:i+4999]) for i in np.arange(5000, num_points*(np.shape(path_list)[0]), num_points)])
-			# mask2 = 
+			mask2 = [not self.isValidBranch(self.nodes[solPathID[i], 0:2], self.nodes[solPathID[i+1],0:2], np.linalg.norm(self.nodes[solPathID[i], 0:2]- self.nodes[solPathID[i+1],0:2])) for i in range(solPathID[:-1].shape[0])]
+			mask2 = np.append(mask2, False)
 			mask = mask|mask2
 		
 		mask[0] = False
