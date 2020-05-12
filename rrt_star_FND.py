@@ -135,5 +135,5 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 cv.destroyAllWindows()
 
 # Saving the list of images as a gif
-print("The results are saved as a GIF to Animation.gif")
-imageio.mimsave('Animation.gif',images,duration = 0.5)
+print("The results are saved as a GIF to Animation_rrt_star_FND.gif")
+imageio.mimsave('Animation_rrt_star_FND.gif',images,duration = 0.5)
