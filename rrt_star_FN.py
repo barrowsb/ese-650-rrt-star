@@ -25,6 +25,7 @@ epsilon = 0.5 #near goal tolerance
 eta = 1.0 #max branch length
 gamma = 20.0 #param to set for radius of hyperball
 goalFound = False
+maxNumNodes = 1000
 #########################################
 #for plotting
 iterations = []
@@ -46,10 +47,10 @@ video = cv.VideoWriter('./Output.avi',fourcc,fps,(width,height))
 #########################################
 #1. Initialize Tree and growth
 print("Initializing FN TREE.....")
-tree = Tree(start, goal, obstacles, xmin,ymin,xmax, ymax)
+tree = Tree(start, goal, obstacles, xmin,ymin,xmax, ymax, maxNumNodes =maxNumNodes)
 #2. Set pcurID = 0; by default in Tree instantiation
 #3. Get Solution Path
-solPath, solPathID = tree.initGrowth(exhaust = True)
+solPath, solPathID = tree.initGrowth(exhaust = True, FN = True)
 ####################
 # Plot
 fig, ax = plt.subplots()
