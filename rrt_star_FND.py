@@ -35,6 +35,8 @@ images = []
 #########################################
 ########### Begin Iterations ############
 #########################################
+startTime = time.time()
+
 #1. Initialize Tree and growth
 print("Initializing FN TREE.....")
 tree = Tree(start, goal, obstacles, xmin,ymin,xmax, ymax, maxNumNodes = maxNumNodes)
@@ -54,7 +56,7 @@ pcur = tree.nodes[tree.pcurID, 0:2]
 utils.drawShape(patches.Circle((pcur[0], pcur[1]), 0.5, facecolor = 'red' ), ax)
 utils.drawTree(tree.nodes, ax, 'grey')
 utils.drawPath(solPath, ax)
-utils.plotEnv(tree, goal,start, ax)
+utils.plotEnv(tree, goal, start, ax)
 im = utils.saveImFromFig(fig)
 cv.imshow('frame',im)
 # Converting from BGR (OpenCV representation) to RGB (ImageIO representation)
@@ -67,7 +69,7 @@ plt.close()
 
 #4. Init movement()-->> update pcurID 
 solPath,solPathID = tree.nextSolNode(solPath,solPathID)
-startTime = time.time()
+
 #5. Begin replanning loop, while pcur is not goal, do...
 while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 	fig, ax = plt.subplots()
@@ -132,10 +134,9 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 	#26. Move to next sol node
 	solPath,solPathID = tree.nextSolNode(solPath,solPathID)
 
-print("Total Run Time: {} secs".format(time.time() -startTime))
+print("Total Run Time: {} secs".format(time.time() - startTime))
 costToGoal, goalID = tree.minGoalID()
 print("Final Total Cost to Goal: {}".format(costToGoal))
-plt.show()
 
 # Closing the display window
 cv.destroyAllWindows()
