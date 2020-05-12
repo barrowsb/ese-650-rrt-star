@@ -26,11 +26,15 @@ epsilon = 0.5 #near goal tolerance
 eta = 1.0 #max branch length
 gamma = 20.0 #param to set for radius of hyperball
 goalFound = False
+maxNumNodes = 1000
 #########################################
 #for plotting
 iterations = []
 costs = []
 path = [];
+#########################################
+# Creating a list to store images at each frame
+images = []
 
 #########################################
 # Defining video codecs and frame rate
@@ -47,10 +51,10 @@ video = cv.VideoWriter('./Output.avi',fourcc,fps,(width,height))
 #########################################
 #1. Initialize Tree and growth
 print("Initializing FN TREE.....")
-tree = Tree(start, goal, obstacles, xmin,ymin,xmax, ymax)
+tree = Tree(start, goal, obstacles, xmin,ymin,xmax, ymax, maxNumNodes =maxNumNodes)
 #2. Set pcurID = 0; by default in Tree instantiation
 #3. Get Solution Path
-solPath, solPathID = tree.initGrowth(exhaust = True)
+solPath, solPathID = tree.initGrowth(exhaust = True, FN = True)
 ####################
 # Plot
 fig, ax = plt.subplots()
@@ -105,7 +109,7 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 	######## END REPLANNING Block #######
 	solPath,solPathID = tree.nextSolNode(solPath,solPathID)
 
-print("Total RunT Time: {} secs".format(time.time() -startTime))
+print("Total Run Time: {} secs".format(time.time() -startTime))
 costToGoal, goalID = tree.minGoalID()
 print("Final Total Cost to Goal: {}".format(costToGoal))
 plt.show()

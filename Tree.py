@@ -219,7 +219,7 @@ class Tree(object):
 
 				#8.Trim tree
 				if FN: 
-					if np.shape(self.nodes)[0] > maxNumNodes:
+					if np.shape(self.nodes)[0] > self.maxNumNodes:
 						self.forcedRemove(qnewID, self.goal, goalFound)
 
 			if not exhaust:
