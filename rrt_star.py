@@ -26,24 +26,34 @@ epsilon = 0.5 #near goal tolerance
 eta = 1.0 #max branch length
 gamma = 20.0 #param to set for radius of hyperball
 goalFound = False
-
+#########################################
+#for plotting
+iterations = []
+costs = []
+path = [];
+#########################################
 # Creating a list to store images at each frame
 images = []
 
 #########################################
+# Defining video codecs and frame rate
+fourcc = cv.VideoWriter_fourcc(*'XVID')
+fps = 30
+# Initializing a VideoWriter object
+width = 864
+height = 1152
+video = cv.VideoWriter('./Output.avi',fourcc,fps,(width,height))
+
+
+#########################################
 ########### Begin Iterations ############
 #########################################
-startTime = time.time()
-
 #1. Initialize Tree and growth
-print("Initializing RRT* TREE.....")
+print("Initializing FN TREE.....")
 tree = Tree(start, goal, obstacles, xmin,ymin,xmax, ymax)
-
 #2. Set pcurID = 0; by default in Tree instantiation
-
 #3. Get Solution Path
-solPath, solPathID = tree.initGrowth(exhaust = True, FN = False)
-
+solPath, solPathID = tree.initGrowth(exhaust = True)
 ####################
 # Plot
 fig, ax = plt.subplots()
@@ -54,7 +64,7 @@ pcur = tree.nodes[tree.pcurID, 0:2]
 utils.drawShape(patches.Circle((pcur[0], pcur[1]), 0.5, facecolor = 'red' ), ax)
 utils.drawTree(tree.nodes, ax, 'grey')
 utils.drawPath(solPath, ax)
-utils.plotEnv(tree, goal, start, ax)
+utils.plotEnv(tree, goal,start, ax)
 im = utils.saveImFromFig(fig)
 cv.imshow('frame',im)
 # Converting from BGR (OpenCV representation) to RGB (ImageIO representation)
@@ -64,11 +74,12 @@ images.append(im)
 cv.waitKey(100)
 plt.close()
 ####################
-
+####################
 #4. Init movement()-->> update pcurID 
 solPath,solPathID = tree.nextSolNode(solPath,solPathID)
-
+####################
 #5. Begin replanning loop, while pcur is not goal, do...
+startTime = time.time()
 while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 	fig, ax = plt.subplots()
 	plt.ylim((-15,15))
@@ -80,17 +91,14 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 	utils.drawPath(solPath, ax)
 	utils.plotEnv(tree, goal,start, ax)
 	im = utils.saveImFromFig(fig)
+	# Writing the image to the video file
+	video.write(im)
 	cv.imshow('frame',im)
-	# Converting from BGR (OpenCV representation) to RGB (ImageIO representation)
-	im = cv.cvtColor(im,cv.COLOR_BGR2RGB)
-	# Appending to list of images
-	images.append(im)
-	cv.waitKey(100)
+	cv.waitKey(500)
 	plt.close()
 	
 	#6. Obstacle Updates
 	tree.updateObstacles()
-
 	#7. if solPath breaks, reset tree and replan
 	if tree.detectCollision(solPath):
 		print("********************************************************")
@@ -102,14 +110,15 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 	######## END REPLANNING Block #######
 	solPath,solPathID = tree.nextSolNode(solPath,solPathID)
 
-print("Total Run Time: {} secs".format(time.time() - startTime))
+print("Total Run Time: {} secs".format(time.time() -startTime))
 costToGoal, goalID = tree.minGoalID()
 print("Final Total Cost to Goal: {}".format(costToGoal))
+plt.show()
 
 # Closing the display window
 cv.destroyAllWindows()
 
 # Saving the list of images as a gif
-print("The results are saved as a GIF to Animation_rrt_star.gif")
-imageio.mimsave('Animation_rrt_star.gif',images,duration = 0.5)
+print("The results are saved as a GIF to Animation.gif")
+imageio.mimsave('Animation.gif',images,duration = 0.5)
 
