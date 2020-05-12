@@ -65,10 +65,12 @@ utils.drawTree(tree.nodes, ax, 'grey')
 utils.drawPath(solPath, ax)
 utils.plotEnv(tree, goal,start, ax)
 im = utils.saveImFromFig(fig)
-# Writing the image to the video file
-video.write(im)
 cv.imshow('frame',im)
-cv.waitKey(500)
+# Converting from BGR (OpenCV representation) to RGB (ImageIO representation)
+im = cv.cvtColor(im,cv.COLOR_BGR2RGB)
+# Appending to list of images
+images.append(im)
+cv.waitKey(100)
 plt.close()
 ####################
 ####################

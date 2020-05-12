@@ -42,7 +42,7 @@ tree = Tree(start, goal, obstacles, xmin,ymin,xmax, ymax, maxNumNodes = maxNumNo
 #2. Set pcurID = 0; by default in Tree instantiation
 
 #3. Get Solution Path
-solPath, solPathID = tree.initGrowth(exhaust = True)
+solPath, solPathID = tree.initGrowth(exhaust = True, FN = True)
 
 ####################
 # Plot
