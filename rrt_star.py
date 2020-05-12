@@ -26,8 +26,10 @@ obst4 = Obstacle('rect', [-3,-3,7,1], [0,0], chaos*np.eye(2), 1.5, goalLoc = goa
 obst5 = Obstacle('circle', [-10,-6,2], [0,0], chaos*np.eye(2), 0.5, goalLoc = goalLoc)
 obst6 = Obstacle('rect', [-12,9,2,2], [0,0], chaos*np.eye(2), 0, goalLoc = goalLoc)
 obstacles = [obst1, obst2, obst3, obst4, obst5, obst6] #list of obstacles
+maxNumNodes = np.inf #upper limit on tree size 
 eta = 1.0 #max branch length
 gamma = 20.0 #param to set for radius of hyperball
+resolution = 0.0001
 goalFound = False
 plot_and_save_gif = True
 
@@ -42,7 +44,7 @@ startTime = time.time()
 
 #1. Initialize Tree and growth
 print("Initializing RRT* Tree.....")
-tree = Tree(start,goal,obstacles,xmin,ymin,xmax,ymax)
+tree = Tree(start,goal,obstacles,xmin,ymin,xmax,ymax,maxNumNodes,resolution,eta,gamma,epsilon)
 
 #2. Set pcurID = 0; by default in Tree instantiation
 
@@ -52,48 +54,20 @@ solPath,solPathID = tree.initGrowth(exhaust = True,FN = False)
 ####################
 # Plot
 if plot_and_save_gif:
-	fig,ax = plt.subplots()
-	plt.ylim((-15,15))
-	plt.xlim((-15,15))
-	ax.set_aspect('equal',adjustable='box')
-	pcur = tree.nodes[tree.pcurID,0:2]
-	utils.drawShape(patches.Circle((pcur[0],pcur[1]),0.5,facecolor = 'red'),ax)
-	utils.drawTree(tree.nodes,ax,'grey')
-	utils.drawPath(solPath,ax)
-	utils.plotEnv(tree,goal,start,ax)
-	im = utils.saveImFromFig(fig)
-	cv.imshow('frame',im)
-	# Converting from BGR (OpenCV representation) to RGB (ImageIO representation)
-	im = cv.cvtColor(im,cv.COLOR_BGR2RGB)
+	im = utils.generate_plot(tree,solPath)
 	# Appending to list of images
 	images.append(im)
-	cv.waitKey(100)
-	plt.close()
 ####################
 
 #4. Init movement()-->> update pcurID 
 solPath,solPathID,dt = tree.nextSolNode(solPath,solPathID)
 
 #5. Begin replanning loop, while pcur is not goal, do...
-while np.linalg.norm(tree.nodes[tree.pcurID,0:2] - goal) > epsilon:
+while np.linalg.norm(tree.nodes[tree.pcurID,0:2] - tree.goal) > tree.epsilon:
 	if plot_and_save_gif:
-		fig,ax = plt.subplots()
-		plt.ylim((-15,15))
-		plt.xlim((-15,15))
-		ax.set_aspect('equal',adjustable='box')
-		pcur = tree.nodes[tree.pcurID,0:2]
-		utils.drawShape(patches.Circle((pcur[0],pcur[1]),0.5,facecolor = 'red'),ax)
-		utils.drawTree(tree.nodes,ax,'grey')
-		utils.drawPath(solPath,ax)
-		utils.plotEnv(tree,goal,start,ax)
-		im = utils.saveImFromFig(fig)
-		cv.imshow('frame',im)
-		# Converting from BGR (OpenCV representation) to RGB (ImageIO representation)
-		im = cv.cvtColor(im,cv.COLOR_BGR2RGB)
+		im = utils.generate_plot(tree,solPath)
 		# Appending to list of images
 		images.append(im)
-		cv.waitKey(100)
-		plt.close()
 	
 	#6. Obstacle Updates
 	tree.updateObstacles(dt)
@@ -106,12 +80,18 @@ while np.linalg.norm(tree.nodes[tree.pcurID,0:2] - goal) > epsilon:
 		tree.reset(inheritCost = True)
 		solPath,solPathID = tree.initGrowth(exhaust = False,FN = False)
 
+		if solPath is None:
+			print("Algorithm terminated ! \nUnable to connect to Goal even after drawing 100000 new samples this iteration ! \n")
+			break
+
 	######## END REPLANNING Block #######
 	solPath,solPathID,dt = tree.nextSolNode(solPath,solPathID)
 
 print("Total Run Time: {} secs".format(time.time() - startTime))
-costToGoal, goalID = tree.minGoalID()
-print("Final Total Cost to Goal: {}".format(costToGoal))
+
+if solPath is not None:
+	costToGoal, goalID = tree.minGoalID()
+	print("Final Total Cost to Goal: {}".format(costToGoal))
 
 if plot_and_save_gif:
 	# Closing the display window
