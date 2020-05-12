@@ -324,13 +324,13 @@ class Tree(object):
 				if not childID == newrootID:
 					self.recursivelyStrip(newrootID,parentIDs,nodeID=childID)
 	
-	def selectBranch(self, pcurID, solnpathIDs):
+	def selectBranch(self,solnpathIDs):
 		# modify tree in place by rerooting at pcurID:
 		#   - remove all lineages prior to pcur (adjust nx4 matrix)
 		#   - adjust goalIDs
 		#   - output subpathIDs
 		#return the adjusted solpathID(shorter and ID-correct), passs solpathID to validPath()
-		self.nodes,subpathIDs,self.goalIDs = self.rerootAtID(pcurID,tree=self.nodes,pathIDs=solnpathIDs,goalIDs=self.goalIDs)
+		self.nodes,subpathIDs,self.goalIDs = self.rerootAtID(self.pcurID,tree = self.nodes,pathIDs = solnpathIDs,goalIDs = self.goalIDs)
 		return subpathIDs
 
 	def destroyLineage(self, ancestorIDs, tree):

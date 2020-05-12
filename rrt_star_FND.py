@@ -14,17 +14,18 @@ import time
 ############### Task Setup ##############
 #########################################
 start = [-12,-12]
-goal = [11,11]
+goal = [12,12]
+epsilon = 0.5 #near goal tolerance
+goalLoc = goal.append(epsilon)
 chaos = 0.05
 xmin, ymin, xmax, ymax = -15,-15,15,15 #grid world borders
-obst1 = Obstacle('rect',[-5, 5, 2,3], [0,0], chaos*np.eye(2), 1.5)
-obst2 = Obstacle('circle',[3,9,2], [0,0], chaos*np.eye(2), 1.5)
-obst3 = Obstacle('rect', [8,-5,1,6], [0,0], chaos*np.eye(2), 1.5)
-obst4 = Obstacle('rect', [-3,-3,7,1], [0,0], chaos*np.eye(2), 1.5)
-obst5 = Obstacle('circle', [-10,-6,2], [0,0], chaos*np.eye(2), 0.5)
-obst6 = Obstacle('rect', [-12,9,2,2], [0,0], chaos*np.eye(2), 0)
+obst1 = Obstacle('rect',[-5, 5, 2,3], [0,0], chaos*np.eye(2), 1.5, goalLoc = goalLoc)
+obst2 = Obstacle('circle',[3,9,2], [0,0], chaos*np.eye(2), 1.5, goalLoc = goalLoc)
+obst3 = Obstacle('rect', [8,-5,1,6], [0,0], chaos*np.eye(2), 1.5, goalLoc = goalLoc)
+obst4 = Obstacle('rect', [-3,-3,7,1], [0,0], chaos*np.eye(2), 1.5, goalLoc = goalLoc)
+obst5 = Obstacle('circle', [-10,-6,2], [0,0], chaos*np.eye(2), 0.5, goalLoc = goalLoc)
+obst6 = Obstacle('rect', [-12,9,2,2], [0,0], chaos*np.eye(2), 0, goalLoc = goalLoc)
 obstacles = [obst1, obst2, obst3, obst4, obst5, obst6] #list of obstacles
-epsilon = 0.5 #near goal tolerance
 maxNumNodes = 3000 #upper limit on tree size 
 eta = 1.0 #max branch length
 gamma = 20.0 #param to set for radius of hyperball
@@ -37,26 +38,28 @@ images = []
 #########################################
 ########### Begin Iterations ############
 #########################################
+startTime = time.time()
+
 #1. Initialize Tree and growth
 print("Initializing FN TREE.....")
-tree = Tree(start, goal, obstacles, xmin,ymin,xmax, ymax, maxNumNodes = maxNumNodes)
+tree = Tree(start,goal,obstacles,xmin,ymin,xmax,ymax,maxNumNodes = maxNumNodes)
 
 #2. Set pcurID = 0; by default in Tree instantiation
 
 #3. Get Solution Path
-solPath, solPathID = tree.initGrowth(exhaust = True, FN = True)
+solPath,solPathID = tree.initGrowth(exhaust = True,FN = True)
 
 ####################
 # Plot
-fig, ax = plt.subplots()
+fig,ax = plt.subplots()
 plt.ylim((-15,15))
 plt.xlim((-15,15))
-ax.set_aspect('equal', adjustable='box')
-pcur = tree.nodes[tree.pcurID, 0:2]
-utils.drawShape(patches.Circle((pcur[0], pcur[1]), 0.5, facecolor = 'red' ), ax)
-utils.drawTree(tree.nodes, ax, 'grey')
-utils.drawPath(solPath, ax)
-utils.plotEnv(tree, goal,start, ax)
+ax.set_aspect('equal',adjustable='box')
+pcur = tree.nodes[tree.pcurID,0:2]
+utils.drawShape(patches.Circle((pcur[0],pcur[1]),0.5,facecolor = 'red'),ax)
+utils.drawTree(tree.nodes,ax,'grey')
+utils.drawPath(solPath,ax)
+utils.plotEnv(tree,goal,start,ax)
 im = utils.saveImFromFig(fig)
 cv.imshow('frame',im)
 # Converting from BGR (OpenCV representation) to RGB (ImageIO representation)
@@ -69,18 +72,18 @@ plt.close()
 
 #4. Init movement()-->> update pcurID 
 solPath,solPathID,dt = tree.nextSolNode(solPath,solPathID)
-startTime = time.time()
+
 #5. Begin replanning loop, while pcur is not goal, do...
 while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
-	fig, ax = plt.subplots()
+	fig,ax = plt.subplots()
 	plt.ylim((-15,15))
 	plt.xlim((-15,15))
-	ax.set_aspect('equal', adjustable='box')
-	pcur = tree.nodes[tree.pcurID, 0:2]
-	utils.drawShape(patches.Circle((pcur[0], pcur[1]), 0.5, facecolor = 'red' ), ax)
-	utils.drawTree(tree.nodes, ax, 'grey')
-	utils.drawPath(solPath, ax)
-	utils.plotEnv(tree, goal,start, ax)
+	ax.set_aspect('equal',adjustable='box')
+	pcur = tree.nodes[tree.pcurID,0:2]
+	utils.drawShape(patches.Circle((pcur[0],pcur[1]),0.5,facecolor = 'red'),ax)
+	utils.drawTree(tree.nodes,ax,'grey')
+	utils.drawPath(solPath,ax)
+	utils.plotEnv(tree,goal,start,ax)
 	im = utils.saveImFromFig(fig)
 	cv.imshow('frame',im)
 	# Converting from BGR (OpenCV representation) to RGB (ImageIO representation)
@@ -102,10 +105,10 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 		print("********************************************************")
 
 		#9. select remaining valid branches
-		solPathID = tree.selectBranch(tree.pcurID, solPathID)	
+		solPathID = tree.selectBranch(solPathID)
+
 		#10. Separate tree
 		separatePathID, orphanedTree = tree.validPath(solPathID)
-		separatePath = orphanedTree[separatePathID, 0:2].reshape(-1,2)
 
 		#11-20. Try to reconnect main with orphanedTree
 		reconnected,solPath,solPathID = tree.reconnect(separatePathID)
@@ -114,7 +117,6 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 			print('\n')
 			print("				RECONNECT SUCCESSFUL !		")
 			print('\n')
-			# utils.drawTree(tree.nodes, ax, 'red')
 		
 		else:
 			print('\n')
@@ -133,10 +135,9 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 	#26. Move to next sol node
 	solPath,solPathID,dt = tree.nextSolNode(solPath,solPathID)
 
-print("Total Run Time: {} secs".format(time.time() -startTime))
+print("Total Run Time: {} secs".format(time.time() - startTime))
 costToGoal, goalID = tree.minGoalID()
 print("Final Total Cost to Goal: {}".format(costToGoal))
-plt.show()
 
 # Closing the display window
 cv.destroyAllWindows()
