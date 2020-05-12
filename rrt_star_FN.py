@@ -31,6 +31,9 @@ maxNumNodes = 1000
 iterations = []
 costs = []
 path = [];
+#########################################
+# Creating a list to store images at each frame
+images = []
 
 #########################################
 # Defining video codecs and frame rate
@@ -105,7 +108,7 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 	######## END REPLANNING Block #######
 	solPath,solPathID = tree.nextSolNode(solPath,solPathID)
 
-print("Total RunT Time: {} secs".format(time.time() -startTime))
+print("Total Run Time: {} secs".format(time.time() -startTime))
 costToGoal, goalID = tree.minGoalID()
 print("Final Total Cost to Goal: {}".format(costToGoal))
 plt.show()

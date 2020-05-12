@@ -132,7 +132,7 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 	#26. Move to next sol node
 	solPath,solPathID = tree.nextSolNode(solPath,solPathID)
 
-print("Total RunT Time: {} secs".format(time.time() -startTime))
+print("Total Run Time: {} secs".format(time.time() -startTime))
 costToGoal, goalID = tree.minGoalID()
 print("Final Total Cost to Goal: {}".format(costToGoal))
 plt.show()
