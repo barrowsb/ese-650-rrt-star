@@ -13,11 +13,12 @@ import imageio
 #########################################
 start = [-14,-14]
 goal = [14,14]
+chaos = 0.05
 xmin, ymin, xmax, ymax = -15,-15,15,15 #grid world borders
-obst1 = Obstacle('rect',[-5, 5, 2,3], [-0.8,-0.5], np.eye(2))
-obst2 = Obstacle('circle',[3,9,2], [-0.5,0.5], np.eye(2))
-obst3 = Obstacle('rect', [5,-2,1,4], [0,0], np.eye(2))
-obst4 = Obstacle('rect', [-3,-3,7,1], [0,0], np.eye(2))
+obst1 = Obstacle('rect',[-5, 5, 2,3], [-0.8,-0.5], chaos*np.eye(2))
+obst2 = Obstacle('circle',[3,9,2], [-0.5,0.5], chaos*np.eye(2))
+obst3 = Obstacle('rect', [5,-2,1,4], [0,0], chaos*np.eye(2))
+obst4 = Obstacle('rect', [-3,-3,7,1], [0,0], chaos*np.eye(2))
 
 obstacles = [obst1, obst2, obst3, obst4] #list of obstacles
 N = 2000 #number of iterations
