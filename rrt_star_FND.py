@@ -7,6 +7,7 @@ from matplotlib.path import Path
 import matplotlib.patches as patches
 import cv2 as cv
 import imageio
+import time
 
 #########################################
 ############### Task Setup ##############
@@ -66,7 +67,7 @@ plt.close()
 
 #4. Init movement()-->> update pcurID 
 solPath,solPathID = tree.nextSolNode(solPath,solPathID)
-
+startTime = time.time()
 #5. Begin replanning loop, while pcur is not goal, do...
 while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 	fig, ax = plt.subplots()
@@ -130,6 +131,11 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 
 	#26. Move to next sol node
 	solPath,solPathID = tree.nextSolNode(solPath,solPathID)
+
+print("Total RunT Time: {} secs".format(time.time() -startTime))
+costToGoal, goalID = tree.minGoalID()
+print("Final Total Cost to Goal: {}".format(costToGoal))
+plt.show()
 
 # Closing the display window
 cv.destroyAllWindows()

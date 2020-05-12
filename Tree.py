@@ -4,7 +4,7 @@ import random
 import utils
 
 class Tree(object):
-	def __init__(self, start, goal, obstacles, xmin,ymin,xmax, ymax):
+	def __init__(self, start, goal, obstacles, xmin,ymin,xmax, ymax, maxNumNodes = 1000):
 		self.nodes = np.array([start[0],start[1],0,-1]).reshape(1,4)
 		#4th column of self.nodes == parentID of root node is None
 		#3rd column of self.nodes == costs to get to each node from root		
@@ -21,6 +21,7 @@ class Tree(object):
 		self.gamma = 20.0
 		self.temp_tree = np.array([0,0,0,-1]).reshape(1,4)
 		self.epsilon = 0.5
+		self.maxNumNodes = maxNumNodes
 
 	
 	def addEdge(self, parentID, child, cost):
@@ -183,7 +184,7 @@ class Tree(object):
 	######### RRT* FND Methods #########
 	####################################
 	
-	def initGrowth(self, exhaust = False, N = 5000, maxNumNodes = 6000, epsilon = 0.5, eta = 1.0, gamma = 20.0):
+	def initGrowth(self, exhaust = False, N = 5000, epsilon = 0.5, eta = 1.0, gamma = 20.0, FN = False):
 		#exhaust: if true, finish all N iterations before returning solPath
 		#initial tree growth. Returns solution path and its ID sequence
 		print("Begin initial growth...")
@@ -217,8 +218,9 @@ class Tree(object):
 				self.rewire(qnewID,naysID,distances)
 
 				#8.Trim tree
-				if np.shape(self.nodes)[0] > maxNumNodes:
-					self.forcedRemove(qnewID, self.goal, goalFound)
+				if FN: 
+					if np.shape(self.nodes)[0] > maxNumNodes:
+						self.forcedRemove(qnewID, self.goal, goalFound)
 
 			if not exhaust:
 				if goalFound:

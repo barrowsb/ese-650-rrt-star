@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 from matplotlib.path import Path
 import matplotlib.patches as patches
 import cv2 as cv
+import imageio
+import time
 
 
 #########################################
@@ -19,7 +21,6 @@ obst2 = Obstacle('circle',[0,9,2], [-0.5,0.5], np.eye(2))
 obst3 = Obstacle('rect', [8,-4,1,4], [0,0], np.eye(2))
 obst4 = Obstacle('rect', [-1,-2,7,1], [0,0], np.eye(2))
 obstacles = [obst1, obst2, obst3, obst4] #list of obstacles
-N = 2000 #number of iterations
 epsilon = 0.5 #near goal tolerance
 eta = 1.0 #max branch length
 gamma = 20.0 #param to set for radius of hyperball
@@ -48,7 +49,7 @@ print("Initializing FN TREE.....")
 tree = Tree(start, goal, obstacles, xmin,ymin,xmax, ymax)
 #2. Set pcurID = 0; by default in Tree instantiation
 #3. Get Solution Path
-solPath, solPathID = tree.initGrowth()
+solPath, solPathID = tree.initGrowth(exhaust = True)
 ####################
 # Plot
 fig, ax = plt.subplots()
@@ -72,6 +73,7 @@ plt.close()
 solPath,solPathID = tree.nextSolNode(solPath,solPathID)
 ####################
 #5. Begin replanning loop, while pcur is not goal, do...
+startTime = time.time()
 while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 	fig, ax = plt.subplots()
 	plt.ylim((-15,15))
@@ -88,7 +90,6 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 	cv.imshow('frame',im)
 	cv.waitKey(500)
 	plt.close()
-	# cv2.imwrite("image_{}".format(i), im) 
 	
 	#6. Obstacle Updates
 	tree.updateObstacles()
@@ -98,12 +99,20 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 		print("**** Path Breaks, collision detected, Replanning! ******")
 		print("********************************************************")
 		tree.reset(inheritCost = True)
-		solPath, solPathID = tree.initGrowth(exhaust = False)
+		solPath, solPathID = tree.initGrowth(exhaust = False, FN = False)
 
 	######## END REPLANNING Block #######
 	solPath,solPathID = tree.nextSolNode(solPath,solPathID)
 
+print("Total RunT Time: {} secs".format(time.time() -startTime))
+costToGoal, goalID = tree.minGoalID()
+print("Final Total Cost to Goal: {}".format(costToGoal))
 plt.show()
 
+# Closing the display window
+cv.destroyAllWindows()
 
+# Saving the list of images as a gif
+print("The results are saved as a GIF to Animation.gif")
+imageio.mimsave('Animation.gif',images,duration = 0.5)
 
