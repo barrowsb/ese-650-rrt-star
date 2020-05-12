@@ -117,9 +117,13 @@ class Obstacle(object):
 		vel,goalrebound = self.checkGoalRebound(new,vel)
 		# check for robot rebound and update vel if necessary
 		vel,robotrebound = self.checkRobotRebound(bot_x,bot_y,new,vel)
+		# renomalize
+		norm = np.linalg.norm(vel)
+		if not norm==0:
+			vel = self.speed*(vel/norm)
 		# if two rebounds happen, obstacle stops for this timestep
 		if (robotrebound or goalrebound) and borderrebound:
-			vel *= in_vel*np.array([0,0])
+			vel *= vel*np.array([0,0])
 		# if rebound necessary, compute position again
 		if (borderrebound or goalrebound or robotrebound):
 			new = self.position + vel*dt
