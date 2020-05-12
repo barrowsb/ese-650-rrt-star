@@ -30,10 +30,11 @@ maxNumNodes = 3000 #upper limit on tree size
 eta = 1.0 #max branch length
 gamma = 20.0 #param to set for radius of hyperball
 goalFound = False
+plot_and_save_gif = True
 
-#########################################
 # Creating a list to store images at each frame
-images = []
+if plot_and_save_gif:
+	images = []
 
 #########################################
 ########### Begin Iterations ############
@@ -41,7 +42,7 @@ images = []
 startTime = time.time()
 
 #1. Initialize Tree and growth
-print("Initializing FN TREE.....")
+print("Initializing Fixed Node Tree.....")
 tree = Tree(start,goal,obstacles,xmin,ymin,xmax,ymax,maxNumNodes = maxNumNodes)
 
 #2. Set pcurID = 0; by default in Tree instantiation
@@ -51,30 +52,7 @@ solPath,solPathID = tree.initGrowth(exhaust = True,FN = True)
 
 ####################
 # Plot
-fig,ax = plt.subplots()
-plt.ylim((-15,15))
-plt.xlim((-15,15))
-ax.set_aspect('equal',adjustable='box')
-pcur = tree.nodes[tree.pcurID,0:2]
-utils.drawShape(patches.Circle((pcur[0],pcur[1]),0.5,facecolor = 'red'),ax)
-utils.drawTree(tree.nodes,ax,'grey')
-utils.drawPath(solPath,ax)
-utils.plotEnv(tree,goal,start,ax)
-im = utils.saveImFromFig(fig)
-cv.imshow('frame',im)
-# Converting from BGR (OpenCV representation) to RGB (ImageIO representation)
-im = cv.cvtColor(im,cv.COLOR_BGR2RGB)
-# Appending to list of images
-images.append(im)
-cv.waitKey(100)
-plt.close()
-####################
-
-#4. Init movement()-->> update pcurID 
-solPath,solPathID,dt = tree.nextSolNode(solPath,solPathID)
-
-#5. Begin replanning loop, while pcur is not goal, do...
-while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
+if plot_and_save_gif:
 	fig,ax = plt.subplots()
 	plt.ylim((-15,15))
 	plt.xlim((-15,15))
@@ -92,6 +70,31 @@ while np.linalg.norm(tree.nodes[tree.pcurID, 0:2] - goal) > epsilon:
 	images.append(im)
 	cv.waitKey(100)
 	plt.close()
+####################
+
+#4. Init movement()-->> update pcurID 
+solPath,solPathID,dt = tree.nextSolNode(solPath,solPathID)
+
+#5. Begin replanning loop, while pcur is not goal, do...
+while np.linalg.norm(tree.nodes[tree.pcurID,0:2] - goal) > epsilon:
+	if plot_and_save_gif:
+		fig,ax = plt.subplots()
+		plt.ylim((-15,15))
+		plt.xlim((-15,15))
+		ax.set_aspect('equal',adjustable='box')
+		pcur = tree.nodes[tree.pcurID,0:2]
+		utils.drawShape(patches.Circle((pcur[0],pcur[1]),0.5,facecolor = 'red'),ax)
+		utils.drawTree(tree.nodes,ax,'grey')
+		utils.drawPath(solPath,ax)
+		utils.plotEnv(tree,goal,start,ax)
+		im = utils.saveImFromFig(fig)
+		cv.imshow('frame',im)
+		# Converting from BGR (OpenCV representation) to RGB (ImageIO representation)
+		im = cv.cvtColor(im,cv.COLOR_BGR2RGB)
+		# Appending to list of images
+		images.append(im)
+		cv.waitKey(100)
+		plt.close()
 
 	#6. Obstacle Updates
 	tree.updateObstacles(dt)
@@ -139,9 +142,10 @@ print("Total Run Time: {} secs".format(time.time() - startTime))
 costToGoal, goalID = tree.minGoalID()
 print("Final Total Cost to Goal: {}".format(costToGoal))
 
-# Closing the display window
-cv.destroyAllWindows()
+if plot_and_save_gif:
+	# Closing the display window
+	cv.destroyAllWindows()
 
-# Saving the list of images as a gif
-print("The results are saved as a GIF to Animation_rrt_star_FND.gif")
-imageio.mimsave('Animation_rrt_star_FND.gif',images,duration = 0.5)
+	# Saving the list of images as a gif
+	print("The results are saved as a GIF to Animation_rrt_star_FND.gif")
+	imageio.mimsave('Animation_rrt_star_FND.gif',images,duration = 0.5)
