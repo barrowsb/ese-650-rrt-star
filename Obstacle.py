@@ -8,16 +8,11 @@ class Obstacle(object):
 		#kind: string type. Either 'rect' or 'circle'
 		#parameters: for rect type: parameters= [x_min, y_min, width, height]
 		#for circle type: parameters = [x_centre, y_centre, radius]
-		#velMean = mean of velocity Gaussian
-		#velCovar = covariance of velocity Gaussian
 		if not ( ((kind=='rect') and (len(parameters)==4)) or \
 				 ((kind=='circle') and (len(parameters)==3)) ):
 			raise ValueError
 		self.kind = kind
 		self.params = parameters
-		self.velMean = velMean
-		self.velCovar = velCovar
-		self.speed = speed
 		if kind == 'rect':
 			self.position = np.array([parameters[0], parameters[1]])
 			self.width = parameters[2]
@@ -25,15 +20,23 @@ class Obstacle(object):
 		if kind == 'circle':
 			self.position = np.array([parameters[0], parameters[1]])
 			self.radius = parameters[2]
-		self.history = [self.position]
+		#four walls of environment for bounces
 		self.xmin = borders[0]
 		self.ymin = borders[1]
 		self.xmax = borders[2]
 		self.ymax = borders[3]
+		#robot radius for bounces
 		self.robot_r = 0.5
+		#goal location and radius for bounces
 		self.goal_x = goalLoc[0]
 		self.goal_y = goalLoc[1]
 		self.goal_r = goalLoc[2]
+		#velMean = mean of velocity mutltivariate Gaussian (updated at each t)
+		#velCovar = covariance of velocity multivariate Gaussian
+		#speed = speed (limit) of obstacle
+		self.velMean = velMean
+		self.velCovar = velCovar
+		self.speed = speed
 
 	def isCollisionFree(self, x):
 		#returns a boolean indicating whether obstacle is in collision
@@ -101,32 +104,25 @@ class Obstacle(object):
 		norm = np.linalg.norm(vel)
 		if not norm==0:
 			vel = self.speed*(vel/norm)
-		# check for rebound and update obstacle position
-		vel,new = self.doRebound(p_cur[0],p_cur[1],vel,dt)
-		# update and return output
-		self.velMean = vel
-		self.position = new
-		self.history.append(new)
-		return new
+		# check for rebound and update + return obstacle position, velocity
+		self.velMean,self.position = self.doRebound(p_cur[0],p_cur[1],vel,dt)
+		return self.position
 	
-	def doRebound(self,x,y,in_vel,dt):
+	def doRebound(self,bot_x,bot_y,vel,dt):
 		# temporary new position
-		borderrebound = False
-		goalrebound = False
-		robotrebound = False
-		new = self.position + in_vel*dt
+		new = self.position + vel*dt
 		# check for border rebound and udpate vel if necessary
-		vel,borderrebound = self.checkBorderRebound(new,in_vel)
+		vel,borderrebound = self.checkBorderRebound(new,vel)
 		# check for goal rebound and update vel if necessary
-		vel,goalrebound = self.checkGoalRebound(new,in_vel)
+		vel,goalrebound = self.checkGoalRebound(new,vel)
 		# check for robot rebound and update vel if necessary
-		vel,robotrebound = self.checkRobotRebound(x,y,new,in_vel)
-		# if two rebounds happen, fix rebound
+		vel,robotrebound = self.checkRobotRebound(bot_x,bot_y,new,vel)
+		# if two rebounds happen, obstacle stops for this timestep
 		if (robotrebound or goalrebound) and borderrebound:
 			vel *= in_vel*np.array([0,0])
 		# if rebound necessary, compute position again
-		if borderrebound or goalrebound or robotrebound:
-			new = self.position + in_vel*dt
+		if (borderrebound or goalrebound or robotrebound):
+			new = self.position + vel*dt
 		return vel,new
 	
 	def checkBorderRebound(self,new,vel):
