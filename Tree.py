@@ -183,7 +183,7 @@ class Tree(object):
 	######### RRT* FND Methods #########
 	####################################
 	
-	def initGrowth(self, exhaust = False, N = 10000, maxNumNodes = 6000, epsilon = 0.5, eta = 1.0, gamma = 20.0):
+	def initGrowth(self, exhaust = False, N = 5000, maxNumNodes = 6000, epsilon = 0.5, eta = 1.0, gamma = 20.0):
 		#exhaust: if true, finish all N iterations before returning solPath
 		#initial tree growth. Returns solution path and its ID sequence
 		print("Begin initial growth...")
@@ -541,3 +541,16 @@ class Tree(object):
 		#update pcur to the next sol node and return shortened solpathID
 		self.pcurID = solPathID[1]
 		return solPath[1:],solPathID[1:]
+
+	def reset(self, inheritCost = True):
+		#clears all nodes and seed new tree at self.pcur
+		newroot = self.nodes[self.pcurID, 0:2]
+		newrootCost = self.nodes[self.pcurID, 2]
+		self.nodes = np.array([newroot[0],newroot[1],0,-1]).reshape(1,4)	
+		if inheritCost is True:
+			self.nodes = np.array([newroot[0],newroot[1], newrootCost,-1]).reshape(1,4)		
+		self.goalIDs = np.array([]).astype(int) # list of near-goal nodeIDs
+		self.update_q = [] # for cost propagation
+		self.orphanedTree = np.array([0,0,0,0]).reshape(1,4)
+		self.separatePathID = np.array([]) # IDs along path to goal in the orphaned tree
+
