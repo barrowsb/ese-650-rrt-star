@@ -5,7 +5,9 @@
 
 ## Running our code
 
-The files of interest are **rrt_star.py**, **rrt_star_FN.py**, and **rrt_star-FND.py**. Running each of these will run the corresponding algorithm in a 2D, dynamic environment with randomly moving obstacles, show the progress in real time, and output the resulting animation to the same directory as a GIF. The goal is shown in yellow, the robot in red, start location in pink, obstacles in blue, tree in gray, and best path in green. Additionally, the code will output the final cost (total distance traversed by the robot) and the total runtime of the script. To run without visualization (as is done for the experiments in the *Results* section of our paper), simply changed the value of *plot_and_save_gif* to *False*.
+The files of interest are **rrt_star.py**, **rrt_star_FN.py**, and **rrt_star-FND.py**. Running each of these will run the corresponding algorithm in a 2D, dynamic environment with randomly moving obstacles, show the progress in real time, and output the resulting animation to the same directory as a GIF. The goal is shown in yellow, the robot in red, start location in pink, obstacles in blue, tree in gray, and best path in green. Additionally, the code will output the final cost (total distance traversed by the robot) and the total runtime of the script.
+
+To run without visualization (as is done for the experiments in the *Results* section of our paper), simply changed the value of *plot_and_save_gif* to *False*.
 
 ## File breakdown
 
