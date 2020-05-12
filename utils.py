@@ -45,13 +45,13 @@ def drawShape(patch, ax):
 def drawPath(path, ax, color = 'green'):
 	for i in range(np.shape(path)[0]-1):
 		draw_edge(path[i], path[i+1], ax, color, 2)
-def plotEnv(tree, goal, start, ax):
+def plotEnv(tree, ax):
 	#draw obstacles
 	for obs in tree.obstacles:
 		drawShape(obs.toPatch('blue'), ax)
 	#draw start and goal
-	G = patches.Circle((goal[0], goal[1]), 0.5, facecolor = 'orange' )
-	S = patches.Circle((start[0], start[1]), 0.5, facecolor = 'pink' )
+	G = patches.Circle((tree.goal[0], tree.goal[1]), 0.5, facecolor = 'orange' )
+	S = patches.Circle((tree.start[0], tree.start[1]), 0.5, facecolor = 'pink' )
 	drawShape(G, ax)
 	drawShape(S, ax)
 
@@ -63,4 +63,23 @@ def saveImFromFig(fig, dpi= 180):
 	buf.close()
 	img = cv.imdecode(img_arr,1)
 	return img
+
+def generate_plot(tree,solPath):
+	fig,ax = plt.subplots()
+	plt.ylim((-15,15))
+	plt.xlim((-15,15))
+	ax.set_aspect('equal',adjustable='box')
+	pcur = tree.nodes[tree.pcurID,0:2]
+	drawShape(patches.Circle((pcur[0],pcur[1]),0.5,facecolor = 'red'),ax)
+	drawTree(tree.nodes,ax,'grey')
+	drawPath(solPath,ax)
+	plotEnv(tree,ax)
+	im = saveImFromFig(fig)
+	cv.imshow('frame',im)
+	cv.waitKey(100)
+	# Converting from BGR (OpenCV representation) to RGB (ImageIO representation)
+	im = cv.cvtColor(im,cv.COLOR_BGR2RGB)
+	plt.close()
+
+	return im
 ######################################################################################
