@@ -555,6 +555,7 @@ class Tree(object):
 	def nextSolNode(self,solPath,solPathID):
 		#update pcur to the next sol node and return shortened solpathID
 		self.pcurID = solPathID[1]
+		#computes length of branch traversed
 		dt = self.nodes[solPathID[1], 2] - self.nodes[solPathID[0], 2]
 		return solPath[1:],solPathID[1:],dt
 
