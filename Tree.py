@@ -4,23 +4,25 @@ import random
 import utils
 
 class Tree(object):
-	def __init__(self, start, goal, obstacles, xmin,ymin,xmax, ymax, maxNumNodes = 1000):
+	def __init__(self,start,goal,obstacles,xmin,ymin,xmax,ymax,maxNumNodes = 1000,res = 0.0001,eta = 1.,gamma = 20.,epsilon = 0.5):
 		self.nodes = np.array([start[0],start[1],0,-1]).reshape(1,4)
 		#4th column of self.nodes == parentID of root node is None
 		#3rd column of self.nodes == costs to get to each node from root		
 		self.obstacles = obstacles # a list of Obstacle Objects
 		self.goalIDs = np.array([]).astype(int) # list of near-goal nodeIDs
 		self.update_q = [] # for cost propagation
-		self.resolution = 0.0001 # Resolution for obstacle check along an edge
+		self.resolution = res # Resolution for obstacle check along an edge
 		self.orphanedTree = np.array([0,0,0,0]).reshape(1,4)
 		self.separatePathID = np.array([]) # IDs along path to goal in the orphaned tree
 		self.pcurID = 0 # ID of current node (initialized to rootID)
 		self.xmin, self.ymin, self.xmax, self.ymax = xmin, ymin, xmax, ymax
+		self.start = start
 		self.goal = goal
-		self.eta = 1.0
-		self.gamma = 20.0
+		self.eta = eta
+		print("Eta: ",eta)
+		self.gamma = gamma
 		self.temp_tree = np.array([0,0,0,-1]).reshape(1,4)
-		self.epsilon = 0.5
+		self.epsilon = epsilon
 		self.maxNumNodes = maxNumNodes
 
 	
@@ -185,26 +187,32 @@ class Tree(object):
 	######### RRT* FND Methods #########
 	####################################
 	
-	def initGrowth(self, exhaust = False, N = 5000, epsilon = 0.5, eta = 1.0, gamma = 20.0, FN = False):
+	def initGrowth(self, exhaust = False, N = 5000, FN = False):
 		#exhaust: if true, finish all N iterations before returning solPath
 		#initial tree growth. Returns solution path and its ID sequence
 		print("Begin initial growth...")
 		goalFound = False
+		num_iterations = 0
+		max_iterations = 20
 
 
 		def iterate(goalFound):
+			if num_iterations >= max_iterations:
+				return None,None,goalFound
 			for i in range(N):
 				# print("iter {} || number of nodes: {}".format(i, self.nodes.shape[0]))
 				#2. Sample
 				qrand = utils.sampleUniform(self.xmin, self.ymin, self.xmax, self.ymax)
 				#3. Find nearest node to qrand
 				qnear, qnearID = self.getNearest(qrand)
-				qnew = utils.steer(eta,qnear, qrand)
+				# print("eta: ",self.eta)
+				qnew = utils.steer(self.eta,qnear,qrand)
 			 
 				if self.isValidBranch(qnear, qnew, np.linalg.norm(qnear-qnew)):
 					#4. Find nearest neighbors within hyperball
 					n = np.shape(self.nodes)[0] #number of nodes in self
-					radius = min(eta, gamma*np.sqrt(np.log(n)/n))
+					radius = min(self.eta, self.gamma*np.sqrt(np.log(n)/n))
+					# print("radius: ",radius)
 					distances, NNids = self.getNN(qnew, radius) 
 					#distances are branch costs from every node to qnew
 					
@@ -214,7 +222,7 @@ class Tree(object):
 					qnewID = self.addEdge(int(qparentID), qnew, qnewCost)	
 					
 					#6. If qnew is near goal, store its id
-					if np.linalg.norm(qnew - self.goal) < epsilon:
+					if np.linalg.norm(qnew - self.goal) < self.epsilon:
 						goalFound = True
 						#6.1 Append qnewID(goalID) to self.goalIDs list		
 						self.addGoalID(int(qnewID))
@@ -239,9 +247,13 @@ class Tree(object):
 				solpath_ID = self.retracePathFromTo(goalID)
 				return self.nodes[solpath_ID, 0:2], solpath_ID, goalFound
 
+			else:
+				return -1,-1,goalFound
 
 		while not goalFound:
 			solPath, solPathID, goalFound = iterate(goalFound)
+			if solPath is None:
+				return None,None
 		return solPath, solPathID 
 	
 	def detectCollision(self,solpath):
@@ -483,21 +495,26 @@ class Tree(object):
 		return reconnectSuccess,None,None
 
 
-	def regrow(self,maxNumNodes = 6000,epsilon = 0.5,eta = 1.0,gamma = 20.0):
+	def regrow(self):
 		print("Begin Regrow...")
+		max_iterations = 5000
+		num_iterations = 0
 		goalFound = False
 		while not goalFound:
+			if num_iterations >= max_iterations:
+				return None,None
 			# print("iter {} || number of nodes: {}".format(i, self.nodes.shape[0]))
 			#2. Sample
 			qrand = utils.sampleUniform(self.xmin,self.ymin,self.xmax,self.ymax)
 			#3. Find nearest node to qrand
 			qnear, qnearID = self.getNearest(qrand)
-			qnew = utils.steer(eta,qnear,qrand)
+			qnew = utils.steer(self.eta,qnear,qrand)
 		 
 			if self.isValidBranch(qnear,qnew,np.linalg.norm(qnear - qnew)):
+				num_iterations += 1
 				#4. Find nearest neighbors within hyperball
 				n = np.shape(self.nodes)[0] #number of nodes in self
-				radius = min(eta,gamma * np.sqrt(np.log(n) / n))
+				radius = min(self.eta,self.gamma * np.sqrt(np.log(n) / n))
 				distances,NNids = self.getNN(qnew,radius) 
 				#distances are branch costs from every node to qnew
 				
@@ -507,7 +524,7 @@ class Tree(object):
 				qnewID = self.addEdge(int(qparentID),qnew,qnewCost)	
 				
 				#6. If qnew is near goal, store its id
-				if np.linalg.norm(qnew - self.goal) < epsilon:
+				if np.linalg.norm(qnew - self.goal) < self.epsilon:
 					goalFound = True
 					#6.1 Append qnewID(goalID) to self.goalIDs list		
 					self.addGoalID(int(qnewID))
@@ -515,7 +532,7 @@ class Tree(object):
 				self.rewire(qnewID,naysID,distances)
 
 				#8.Trim tree
-				if np.shape(self.nodes)[0] > maxNumNodes:
+				if np.shape(self.nodes)[0] > self.maxNumNodes:
 					self.forcedRemove(qnewID,self.goal,goalFound)
 
 				if goalFound:
@@ -530,7 +547,7 @@ class Tree(object):
 					separatePathID = np.flip(self.separatePathID)
 					dist = np.linalg.norm(self.orphanedTree[separatePathID,0:2] - qnew, axis = 1)
 					n = np.shape(self.nodes)[0] #number of nodes in self
-					radius = min(eta,gamma * np.sqrt(np.log(n) / n))
+					radius = min(self.eta,self.gamma * np.sqrt(np.log(n) / n))
 					# radius = 1.0
 					poss_connectionIDs = separatePathID[dist <= radius]
 					dist = dist[dist <= radius]
