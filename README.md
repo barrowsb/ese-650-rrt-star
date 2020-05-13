@@ -9,6 +9,8 @@ The files of interest are **rrt_star.py**, **rrt_star_FN.py**, and **rrt_star-FN
 
 To run without visualization (as is done for the experiments in the *Results* section of our paper), simply changed the value of *plot_and_save_gif* in the *Task Setup* section of the script to *False*.
 
+In some rare cases, the goal will not be reachable. This could happen if the robot or goal become totally encircled or due to bugs in our obstacle rebounding logic. Given the random nature of the environment, we were not able to robustly test for all cases. If our implementation fails to find the goal after adding 100,000 nodes to the tree, for whatever reason, the script will terminate.
+
 ## File breakdown
 
 The bulk of the code is in the *Tree* class and the *Obstacle* class, in *Tree.py* and *Obstacle.py* respectively.
